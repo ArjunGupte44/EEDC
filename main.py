@@ -1,9 +1,9 @@
 import openai 
+import sys
 
-def chat_with_gpt(api_key, prompt):
+def call(api_key, prompt):
     openai.api_key = api_key
-
-    model_engine = "text-davinci-002"  # You can use other engines like "text-ada" for GPT-3
+    model_engine = "text-davinci-003"
     max_tokens = 100
 
     response = openai.Completion.create(
@@ -15,9 +15,15 @@ def chat_with_gpt(api_key, prompt):
     message = response.choices[0].text.strip()
     return message
 
+def main():
+    if len(sys.argv) < 2:
+        print("API key not provided.")
+        return
+
+    api_key = sys.argv[1]
+    prompt = ""
+    response = call(api_key, prompt)
+    print(response)
+
 if __name__ == "__main__":
-    api_key = "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"
-    prompt = "Translate the following English text to French: 'Hello, World!'"
-    
-    response = chat_with_gpt(api_key, prompt)
-    print(f"GPT says: {response}")
+    main()
