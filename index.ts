@@ -17,17 +17,6 @@ async function main(target: number) {
 
         // Find the closest number to the target number
         // We sort by the absolute difference and get the first document
-        // let closest = await collection.find({ num: { $gte: target } }).sort({ num: 1 }).limit(1).toArray();
-        // // If no number greater than or equal to the target is found, check for the closest lesser number
-        // if (!closest.length) {
-        //     closest = await collection.find().sort({ num: { $lt: target } }).limit(1).toArray();
-        // }
-
-        // if (closest.length) {
-        //     console.log(`The closest number to ${target} is ${closest[0].num}`);
-        // } else {
-        //     console.log('No number found in the database.');
-        // }
 
         let closest = null;
         let smallestDiff = Number.MAX_SAFE_INTEGER;
