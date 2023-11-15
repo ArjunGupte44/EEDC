@@ -13,3 +13,11 @@ lastly make sure the variable names match up
 do npm install -g typescript
 and then do tsc index.ts to compile 
 run node index.js to run 
+
+To start mongo service:
+brew services start mongodb-community@7.0
+
+To start mongo and connect with mongo compass:
+mongo 
+
+Go to mongo compass and connect to local host
