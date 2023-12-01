@@ -56,6 +56,7 @@ function main(target) {
             switch (_e.label) {
                 case 0:
                     client = new mongodb_1.MongoClient(uri);
+                    console.time('ExecutionTime'); // Start the timer
                     _e.label = 1;
                 case 1:
                     _e.trys.push([1, , 15, 17]);
@@ -121,6 +122,7 @@ function main(target) {
                 case 16:
                     // Close the connection to the MongoDB cluster
                     _e.sent();
+                    console.timeEnd('ExecutionTime'); // End the timer and log the result
                     return [7 /*endfinally*/];
                 case 17: return [2 /*return*/];
             }
