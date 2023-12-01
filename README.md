@@ -1,6 +1,8 @@
 # EEDC — Energy Efficiency for Data Centers
+Optimizing energy and memory efficiency for software engineering
 
 Call main.py in terminal followed by your openAI api key.
+
 
 To use webquery download mongodb compass
 create a database named numbers
