@@ -35,6 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_1 = require("mongodb");
 // Replace the following with your MongoDB connection string.
@@ -42,53 +49,82 @@ var uri = 'mongodb://localhost:27017';
 var dbName = 'numbers';
 var collectionName = 'num';
 function main(target) {
+    var _a, e_1, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var client, database, collection, closest_1, smallestDiff_1, cursor;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var client, database, collection, closest, smallestDiff, cursor, _d, cursor_1, cursor_1_1, doc, diff, e_1_1;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     client = new mongodb_1.MongoClient(uri);
-                    _a.label = 1;
+                    _e.label = 1;
                 case 1:
-                    _a.trys.push([1, , 4, 6]);
+                    _e.trys.push([1, , 15, 17]);
                     // Connect to the MongoDB cluster
                     return [4 /*yield*/, client.connect()];
                 case 2:
                     // Connect to the MongoDB cluster
-                    _a.sent();
+                    _e.sent();
                     database = client.db(dbName);
                     collection = database.collection(collectionName);
-                    closest_1 = null;
-                    smallestDiff_1 = Number.MAX_SAFE_INTEGER;
+                    closest = null;
+                    smallestDiff = Number.MAX_SAFE_INTEGER;
                     cursor = collection.find();
-                    // Loop through all documents to find the closest number
-                    return [4 /*yield*/, cursor.forEach(function (doc) {
-                            var diff = Math.abs(target - doc.num);
-                            if (diff < smallestDiff_1) {
-                                smallestDiff_1 = diff;
-                                closest_1 = doc;
-                            }
-                        })];
+                    _e.label = 3;
                 case 3:
-                    // Loop through all documents to find the closest number
-                    _a.sent();
-                    if (closest_1) {
-                        console.log("The closest number to ".concat(target, " is ").concat(closest_1.num, " with _id: ").concat(closest_1._id));
+                    _e.trys.push([3, 8, 9, 14]);
+                    _d = true, cursor_1 = __asyncValues(cursor);
+                    _e.label = 4;
+                case 4: return [4 /*yield*/, cursor_1.next()];
+                case 5:
+                    if (!(cursor_1_1 = _e.sent(), _a = cursor_1_1.done, !_a)) return [3 /*break*/, 7];
+                    _c = cursor_1_1.value;
+                    _d = false;
+                    doc = _c;
+                    diff = Math.abs(target - doc.num);
+                    if (diff < smallestDiff) {
+                        smallestDiff = diff;
+                        closest = doc;
+                    }
+                    _e.label = 6;
+                case 6:
+                    _d = true;
+                    return [3 /*break*/, 4];
+                case 7: return [3 /*break*/, 14];
+                case 8:
+                    e_1_1 = _e.sent();
+                    e_1 = { error: e_1_1 };
+                    return [3 /*break*/, 14];
+                case 9:
+                    _e.trys.push([9, , 12, 13]);
+                    if (!(!_d && !_a && (_b = cursor_1.return))) return [3 /*break*/, 11];
+                    return [4 /*yield*/, _b.call(cursor_1)];
+                case 10:
+                    _e.sent();
+                    _e.label = 11;
+                case 11: return [3 /*break*/, 13];
+                case 12:
+                    if (e_1) throw e_1.error;
+                    return [7 /*endfinally*/];
+                case 13: return [7 /*endfinally*/];
+                case 14:
+                    ;
+                    if (closest) {
+                        console.log("The closest number to ".concat(target, " is ").concat(closest.num, " with _id: ").concat(closest._id));
                     }
                     else {
                         console.log('No numbers found in the database.');
                     }
-                    return [3 /*break*/, 6];
-                case 4: 
+                    return [3 /*break*/, 17];
+                case 15: 
                 // Close the connection to the MongoDB cluster
                 return [4 /*yield*/, client.close()];
-                case 5:
+                case 16:
                     // Close the connection to the MongoDB cluster
-                    _a.sent();
+                    _e.sent();
                     return [7 /*endfinally*/];
-                case 6: return [2 /*return*/];
+                case 17: return [2 /*return*/];
             }
         });
     });
 }
-main(500).catch(console.error);
+main(390).catch(console.error);

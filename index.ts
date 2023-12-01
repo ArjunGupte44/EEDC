@@ -44,5 +44,5 @@ async function main(target: number) {
         await client.close();
     }
 }
-main(500).catch(console.error);
+main(390).catch(console.error);
 
