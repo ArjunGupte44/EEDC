@@ -19,6 +19,12 @@ run node index.js to run
 To start mongo service:
 brew services start mongodb-community@7.0
 
+or 
+
+brew services stop mongodb-community
+brew install mongodb/brew/mongodb-community
+brew services start mongodb/brew/mongodb-community
+
 To start mongo and connect with mongo compass:
 mongo 
 
