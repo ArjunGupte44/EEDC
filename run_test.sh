@@ -16,7 +16,7 @@ start_powermetrics() {
 stop_powermetrics() {
     # Kill the powermetrics process
     #echo "Stopping powermetrics (PID: $POWERMETRICS_PID)..."
-    sleep 1
+
     sudo kill $POWERMETRICS_PID
 
 }
@@ -27,6 +27,7 @@ sleep 1
 # Run your Node.js program
 node index.js
 
+sleep 1
 # Once the Node.js program completes, stop powermetrics
 stop_powermetrics
 
