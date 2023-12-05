@@ -1,5 +1,7 @@
 # EEDC — Energy Efficiency for Data Centers
 Optimizing energy and memory efficiency for software engineering
+Prompts for improving algorithmic and memory efficiency of code, respectively.
+https://colab.research.google.com/drive/1u8U8VdsJZEs6JsemhYzJIMkLyUZ4fbnL#scrollTo=P6aHBE_Sb8Fj
 
 Call main.py in terminal followed by your openAI api key.
 
