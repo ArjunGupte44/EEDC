@@ -2,6 +2,8 @@
 
 # Define file to store powermetrics data
 # output_file="powermetrics_output.txt"
+time_factor=100
+output_file="powermetrics_output.txt"
 
 # Function to start powermetrics
 start_powermetrics() {
@@ -32,4 +34,11 @@ stop_powermetrics
 
 echo "Powermetrics data saved to $output_file"
 
-grep "CPU Power" powermetrics_output.txt | awk '{print $3}'
+if [[ -s "$output_file" ]]; then
+    # Extract CPU Power values, print each, sum them, and multiply by the multiplication factor
+    total=$(grep "CPU Power" "$output_file" | awk -v factor=$time_factor '{print $0; sum += $3} END {print "Total (multiplied by factor and divided by 10^6):"; print (sum * factor) / 1000000}')
+    echo "$total"
+else
+    echo "Error: Output file not found or is empty."
+fi
+echo "Total after multiplying by $time_factor and dividing by 10^6: $total J "
