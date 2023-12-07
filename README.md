@@ -31,3 +31,8 @@ To start mongo and connect with mongo compass:
 mongo 
 
 Go to mongo compass and connect to local host
+
+Main bash file:
+1. call run_test.sh display energy and record energy.
+2. bash call that calls api file which rewrite target file
+3. repeat step one

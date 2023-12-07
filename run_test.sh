@@ -37,7 +37,7 @@ echo "Powermetrics data saved to $output_file"
 if [[ -s "$output_file" ]]; then
     # Extract CPU Power values, print each, sum them, and multiply by the multiplication factor
     total=$(grep "CPU Power" "$output_file" | awk -v factor=$time_factor '{print $0; sum += $3} END {print "Total (multiplied by factor and divided by 10^6):"; print (sum * factor) / 1000000}')
-    echo "$total"
+   
 else
     echo "Error: Output file not found or is empty."
 fi
