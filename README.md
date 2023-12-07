@@ -1,5 +1,7 @@
 # EEDC — Energy Efficiency for Data Centers
 Optimizing energy and memory efficiency for software engineering
+Prompts for improving algorithmic and memory efficiency of code, respectively.
+https://colab.research.google.com/drive/1u8U8VdsJZEs6JsemhYzJIMkLyUZ4fbnL#scrollTo=P6aHBE_Sb8Fj
 
 Call main.py in terminal followed by your openAI api key.
 
@@ -29,3 +31,8 @@ To start mongo and connect with mongo compass:
 mongo 
 
 Go to mongo compass and connect to local host
+
+Main bash file:
+1. call run_test.sh display energy and record energy.
+2. bash call that calls api file which rewrite target file
+3. repeat step one
