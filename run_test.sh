@@ -27,7 +27,7 @@ stop_powermetrics() {
 start_powermetrics
 sleep 1
 # Run your Node.js program
-node index.js
+./a.out 100 100
 
 sleep 1
 # Once the Node.js program completes, stop powermetrics
@@ -38,7 +38,7 @@ echo "Powermetrics data saved to $output_file"
 if [[ -s "$output_file" ]]; then
     # Extract CPU Power values, print each, sum them, and multiply by the multiplication factor
     total=$(grep "CPU Power" "$output_file" | awk -v factor=$time_factor '{print $0; sum += $3} END {print "Total (multiplied by factor and divided by 10^6):"; print (sum * factor) / 1000000}')
-   
+
 else
     echo "Error: Output file not found or is empty."
 fi
