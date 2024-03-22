@@ -1,5 +1,5 @@
-import ollama
-from ollama import Client
+#import ollama
+#from ollama import Client
 
 generator_instructions_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/prompts/generator_instructions.txt"
 input_code_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/prompts/input_code.txt"
@@ -11,7 +11,7 @@ input_code_file = open(input_code_path, "r")
 input_code = "".join(input_code_file.readlines())
 
 generator_prompt = instructions + input_code
-#print(generator_prompt)
+print(generator_prompt)
 
 
 client = Client("http://")

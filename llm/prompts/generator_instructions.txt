@@ -1,2 +1,0 @@
-As a computer science researcher working on a comprehensive research project aimed at reducing costs in data centers through software optimization, your specific focus is to enhance energy efficiency in code. Given the context of this overarching goal, analyze the provided codebase and implement or propose changes to achieve the dual objectives of improved energy efficiency and cost reduction.
-Provide Python code that is an optimized version of the original software.

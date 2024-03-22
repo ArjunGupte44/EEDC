@@ -1,0 +1,10 @@
+# Define a list of numbers
+numbers = [1, 2, 3, 4, 5]
+
+# Nested loops to calculate the sum of all pairwise products
+total_sum = 0
+for i in numbers:
+    for j in numbers:
+        total_sum += i * j
+
+print("Total sum of pairwise products:", total_sum)
