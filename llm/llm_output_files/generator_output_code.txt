@@ -1,24 +1,15 @@
-```
+```python
 import numpy as np
-from scipy.linalg import kron, tril
+from scipy import sparse
 
-def get_pairwise_products(numbers):
-    n = len(numbers)
-    triangular_matrix = np.tril(kron(np.eye(n), numbers))
-    return triangular_matrix
+# Define a list of numbers
+numbers = [1, 2, 3, 4, 5]
 
-def get_sums(triangular_matrix):
-    sums = tril(np.cumsum(triangular_matrix, axis=0)).sum(axis=1)
-    return sums
+# Calculate the pairwise products using the Kronecker product
+pairwise_products = sparse.kron(numbers, numbers)
 
-if __name__ == "__main__":
-    numbers = [1, 2, 3, 4, 5]
-    triangular_matrix = get_pairwise_products(numbers)
-    sums = get_sums(triangular_matrix)
-    print("Total sum of pairwise products:", np.sum(sums))
+# Sum up all the elements in the matrix
+total_sum = np.sum(pairwise_products)
+
+print("Total sum of pairwise products:", total_sum)
 ```
-This revised code uses the `scipy` library to calculate the pairwise products and sums more efficiently using the `kron()` function for calculating the Kronecker product and the `tril()` function for extracting the lower triangular part of a matrix. The `get_pairwise_products()` function now has a time complexity of O(n log n) instead of O(n^2), and the `get_sums()` function has a time complexity of O(n log n) instead of O(n^2).
-
-Additionally, the revised code uses a sparse matrix or a compressed sparse row (CSR) format to store the triangular matrix, which reduces the memory usage of the program. This is because a dense matrix requires O(n^2) memory to store all the elements, whereas a sparse matrix or CSR format can store only the non-zero elements and their indices, which require less memory.
-
-Finally, the revised code uses multi-threading or multi-processing to parallelize the computation over multiple processors or cores, which significantly reduces the run time of the program. This is because the `get_pairwise_products()` function can be computed in parallel across multiple processors or cores, and the `get_sums()` function can also be computed in parallel using multi-threading or multi-processing.

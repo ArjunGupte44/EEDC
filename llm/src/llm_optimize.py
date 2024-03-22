@@ -1,7 +1,6 @@
 import ollama
 from ollama import Client
 
-
 ##Generator file info##
 generator_instructions_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/EEDC/llm/llm_input_files/nl_prompts/generator_instructions.txt"
 input_code_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/EEDC/llm/llm_input_files/input_code/nested_loops.txt"
@@ -76,7 +75,7 @@ def run_generator(pass_num):
   input_code = "".join(input_code_file.readlines())
 
   generator_prompt = instructions + "\n" + evaluator_feedback + "\n" + input_code
-  print(f"\n\nGENERATOR PROMPT: \n{generator_prompt}")
+  #print(f"\n\nGENERATOR PROMPT: \n{generator_prompt}")
 
 
   #Run codellama 7B
@@ -97,7 +96,6 @@ if __name__ == "__main__":
   done_optimizing = False
   pass_num = 0
 
-  print("here")
   #while not done_optimizing:
   for i in range(5): 
     run_generator(pass_num)
