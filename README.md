@@ -31,3 +31,8 @@ To start mongo and connect with mongo compass:
 mongo 
 
 Go to mongo compass and connect to local host
+
+gilbreth:
+ssh [alias]@gilbreth.rcac.purdue.edu
+password: [password not pin],push
+
