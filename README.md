@@ -31,3 +31,7 @@ To start mongo and connect with mongo compass:
 mongo 
 
 Go to mongo compass and connect to local host
+
+SQL: (Mac)
+To start SQL
+brew services start postgresql@14
