@@ -1,0 +1,6 @@
+* Optimize the code by reducing memory usage:
+The revised code uses a sparse matrix or a compressed sparse row (CSR) format to store the triangular matrix, which reduces the memory usage of the program. This is because a dense matrix requires O(n^2) memory to store all the elements, whereas a sparse matrix or CSR format can store only the non-zero elements and their indices, which require less memory.
+* Optimize the code by reducing run time:
+The revised code uses multi-threading or multi-processing to parallelize the computation over multiple processors or cores, which significantly reduces the run time of the program. This is because the `get_pairwise_products()` function can be computed in parallel across multiple processors or cores, and the `get_sums()` function can also be computed in parallel using multi-threading or multi-processing.
+* Optimize the code by reducing energy usage:
+The revised code has a lower time complexity than the original code, which reduces the energy usage of the program. This is because the revised code uses more efficient algorithms and data structures that require less computational resources to execute.

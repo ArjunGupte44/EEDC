@@ -1,3 +1,5 @@
+Here is the original code:
+
 # This function performs matrix multiplication.
 # It multiplies two matrices 'first' and 'second', storing the result in 'result'.
 def multiply_matrices(first, second, result, r1, c1, r2, c2):
