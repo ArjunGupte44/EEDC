@@ -1,6 +1,9 @@
 import ollama
 from ollama import Client
 
+#Setup ollama client
+client = Client(host='http://172.18.36.115:11434')
+
 ##Generator file info##
 generator_instructions_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/EEDC/llm/llm_input_files/nl_prompts/generator_instructions.txt"
 input_code_path = "/home/agupte/VIP_PTM_DL/LLM_Energy_Efficiency/EEDC/llm/llm_input_files/input_code/nested_loops.txt"
@@ -36,7 +39,7 @@ def run_evaluator():
     print(f"\n\nEVALUATOR PROMPT: \n{evaluator_prompt}")
 
     #Run codellama 7B
-    response = ollama.chat(model='codellama:7b-instruct', messages=[
+    response = client.chat(model='codellama:70b-instruct', messages=[
       {
         'role': 'user',
         'content': evaluator_prompt,
@@ -79,7 +82,7 @@ def run_generator(pass_num):
 
 
   #Run codellama 7B
-  response = ollama.chat(model='codellama:7b-instruct', messages=[
+  response = client.chat(model='codellama:70b-instruct', messages=[
     {
       'role': 'user',
       'content': generator_prompt,
@@ -94,15 +97,15 @@ def run_generator(pass_num):
 
 if __name__ == "__main__":
   done_optimizing = False
-  pass_num = 0
+  iter_num = 0
 
   #while not done_optimizing:
   for i in range(5): 
-    run_generator(pass_num)
+    run_generator(iter_num)
     run_energy_test()
     #done_optimizing = run_evaluator()
     run_evaluator()
-    pass_num += 1
+    iter_num += 1
   
   optimized_code_path = store_optimized_code()
   print(f"The final optimized code can be found in {optimized_code_path}")
