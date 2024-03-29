@@ -1,5 +1,6 @@
 import ollama
 from ollama import Client
+import subprocess 
 
 #Setup ollama client
 client = Client(host='http://172.18.36.115:11434')
@@ -58,10 +59,8 @@ def run_evaluator():
 
 
 def run_energy_test():
-  pass
-  #figure out how to do this based on what fah did
-  #store metrics in file
-
+  path = "/Users/lambert/VIP/EEDC/energy_estimation.sh"
+  subprocess.run(['bash', path])
 
 def run_generator(pass_num):
   instructions_file = open(generator_instructions_path, "r")
