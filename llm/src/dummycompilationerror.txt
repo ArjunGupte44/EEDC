@@ -1,0 +1,8 @@
+Compilation error for optimized_binarytrees.cpp:
+optimized_binarytrees.cpp:127:27: error: invalid operands to binary expression ('char *' and 'float')
+        sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
+                ~~~~~~~~~ ^ ~~~~~~~~~~~~~
+optimized_binarytrees.cpp:133:32: error: invalid operands to binary expression ('char *' and 'float')
+        printf("%s", outputstr + (d * LINE_SIZE) );
+                     ~~~~~~~~~ ^ ~~~~~~~~~~~~~~~
+2 errors generated.

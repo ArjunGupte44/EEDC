@@ -1,0 +1,15 @@
+Testing with depth 6    Outputs are different.
+binarytrees output:
+['stretch tree of depth 7\t check: 255\n', '64\t trees of depth 4\t check: 1984\n', '16\t trees of depth 6\t check: 2032\n', 'long lived tree of depth 6\t check: 127\n']
+optimized_binarytrees output:
+['stretch tree of depth 8\t check: 511\n', '128\t trees of depth 4\t check: 3968\n', '32\t trees of depth 6\t check: 4064\n', 'long lived tree of depth 7\t check: 255\n']
+Testing with depth 10   Outputs are different.
+binarytrees output:
+['stretch tree of depth 11\t check: 4095\n', '1024\t trees of depth 4\t check: 31744\n', '256\t trees of depth 6\t check: 32512\n', '64\t trees of depth 8\t check: 32704\n', '16\t trees of depth 10\t check: 32752\n', 'long lived tree of depth 10\t check: 2047\n']
+optimized_binarytrees output:
+['stretch tree of depth 12\t check: 8191\n', '2048\t trees of depth 4\t check: 63488\n', '512\t trees of depth 6\t check: 65024\n', '128\t trees of depth 8\t check: 65408\n', '32\t trees of depth 10\t check: 65504\n', 'long lived tree of depth 11\t check: 4095\n']
+Testing with depth 15   Outputs are different.
+binarytrees output:
+['stretch tree of depth 16\t check: 131071\n', '32768\t trees of depth 4\t check: 1015808\n', '8192\t trees of depth 6\t check: 1040384\n', '2048\t trees of depth 8\t check: 1046528\n', '512\t trees of depth 10\t check: 1048064\n', '128\t trees of depth 12\t check: 1048448\n', '32\t trees of depth 14\t check: 1048544\n', 'long lived tree of depth 15\t check: 65535\n']
+optimized_binarytrees output:
+['stretch tree of depth 17\t check: 262143\n', '65536\t trees of depth 4\t check: 2031616\n', '16384\t trees of depth 6\t check: 2080768\n', '4096\t trees of depth 8\t check: 2093056\n', '1024\t trees of depth 10\t check: 2096128\n', '256\t trees of depth 12\t check: 2096896\n', '64\t trees of depth 14\t check: 2097088\n', '16\t trees of depth 16\t check: 2097136\n', 'long lived tree of depth 16\t check: 131071\n']
