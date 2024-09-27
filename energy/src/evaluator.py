@@ -51,15 +51,15 @@ def evaluator_llm(benchmark_info):
     """
 
 
-    client = OpenAI(api_key=)
+    # client = OpenAI(api_key=)
     
-    completion = client.beta.chat.completions.parse(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    # completion = client.beta.chat.completions.parse(
+    #     model="gpt-3.5-turbo",
+    #     messages=[
+    #         {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
+    #         {"role": "user", "content": prompt}
+    #     ]
+    # )
     
     # Extract the answer from the response
     optimization_advice = response.choices[0].message
