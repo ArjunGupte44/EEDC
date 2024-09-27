@@ -109,11 +109,11 @@ def master_script():
                 if success == 0:
                     print("Optimization failed due to logic error.")
                     logicerrors += 1
-                    success, optimizations = handle_logic_error(logicerrors, prompt, optimizations, filename)
+                    success, optimizations = handle_logic_error(prompt, optimizations, filename)
                         
                 elif success == -1:
                     print("Optimization failed due to compilation error.")
-                    success, optimizations = handle_compilation_error(comperrors, prompt, optimizations, filename)
+                    success, optimizations = handle_compilation_error(prompt, optimizations, filename)
 
             if success == 1:
                 print("Optimization successful.")
@@ -121,8 +121,9 @@ def master_script():
                 print("Optimization failed.")
             
 
-def handle_compilation_error(comperrors, prompt, optimizations, filename):
+def handle_compilation_error(prompt, optimizations, filename):
     success = -1
+    comperrors = 0
     while success == -1 and comperrors < 3:
         comperrors += 1
         with open("dummycompilationerror.txt", "r") as file:            #dummy file to be replaced with actual compilation error file
@@ -164,8 +165,9 @@ def handle_compilation_error(comperrors, prompt, optimizations, filename):
     return success, optimizations
        
 
-def handle_logic_error(logicerrors, prompt, optimizations, filename):
+def handle_logic_error(prompt, optimizations, filename):
 
+    logicerrors = 0
     success = 0
     while success == 0 and logicerrors < 3:
         logicerrors += 1
