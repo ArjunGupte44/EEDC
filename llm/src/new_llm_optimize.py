@@ -103,7 +103,7 @@ def master_script():
                 file.write(final_code)
 
             optimizations += 1
-            success = regression_test() 
+            success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
 
             while success != 1 and optimizations < 6:
                 if success == 0:
@@ -159,7 +159,7 @@ def handle_compilation_error(comperrors, prompt, optimizations, filename):
             file.write(final_code)
 
         optimizations += 1
-        success = regression_test()
+        success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
 
     return success, optimizations
        
@@ -207,7 +207,7 @@ def handle_logic_error(logicerrors, prompt, optimizations, filename):
             file.write(final_code)
 
         optimizations += 1
-        success = regression_test()
+        success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
 
     return success, optimizations
     
