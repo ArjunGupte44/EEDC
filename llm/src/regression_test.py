@@ -1,12 +1,14 @@
 import subprocess
-import os
 
+# Includes for apr
 APR_INCLUDE_PATH = "/usr/include/apr-1.0"
 APR_LIB = "apr-1"
 
 TREE_DEPTHS_TO_TEST = [6, 10, 15]    # 6 is the minimum depth
 
-TEST_OUTPUT_FILE = "output_log.txt"  
+TEST_OUTPUT_FILE = "llm/src/output_logs/regression_test_log.txt"
+UNOPTIMIZED_OUTPUT = "llm/src/output_logs/unoptimized_output.txt"
+OPTIMIZED_OUTPUT = "llm/src/output_logs/optimized_output.txt"
 
 def compile_program(source_file, output_exec, output_log):
     print(f"Compiling {source_file}")
@@ -20,8 +22,6 @@ def compile_program(source_file, output_exec, output_log):
         return True
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
-        # print(f"Compilation error for {source_file}:")
-        # print(error_message, "\n")
         output_log.write(f"Compilation error for {source_file}:\n{error_message}\n\n")
         return False
 
@@ -46,25 +46,20 @@ def compare_outputs(file1, file2, output_log):
             output_log.write(f"optimized_binarytrees output:\n{file2_content}\n\n")
             return False
 
+# Only for binarytrees
 def regression_test(UNOPTIMIZED_FILE, OPTIMIZED_FILE):
-    did_compile = True
     output_different = False
 
     UNOPTIMIZED_EXEC = UNOPTIMIZED_FILE.split(".")[0]
     OPTIMIZED_EXEC = OPTIMIZED_FILE.split(".")[0]
-    UNOPTIMIZED_OUTPUT = UNOPTIMIZED_FILE.split(".")[0] + ".txt"
-    OPTIMIZED_OUTPUT = OPTIMIZED_FILE.split(".")[0] + ".txt"
 
+    # have to rewrite TES
     with open(TEST_OUTPUT_FILE, 'w+') as output_log:
-        # output_log.write("Starting regression tests.\n\n")
-
         if not compile_program(UNOPTIMIZED_FILE, UNOPTIMIZED_EXEC, output_log):
-            did_compile = False
+            # Return code when unoptimized file does not compile
+            return -2
         if not compile_program(OPTIMIZED_FILE, OPTIMIZED_EXEC, output_log):
-            did_compile = False
-
-        if not did_compile:
-            # output_log.write("Compilation failed.\n")
+            # Return code when optimized file does not compile
             return -1
 
         for depth in TREE_DEPTHS_TO_TEST:
@@ -74,20 +69,10 @@ def regression_test(UNOPTIMIZED_FILE, OPTIMIZED_FILE):
             if not compare_outputs(UNOPTIMIZED_OUTPUT, OPTIMIZED_OUTPUT, output_log):
                 output_different = True
         if output_different:
-            # output_log.write("Analyze the output differences above and identify why the output for optimized_binarytrees.cpp is different. Investigate issues such as memory management, algorithmic discrepancies, or optimizations that could affect the results. Make the changes in optimized_binarytrees.cpp and ensure the outputs match.\n")
             return 0
         else:
             output_log.write("Regression test successful. Outputs are the same.\n\n")
             return 1
-            
 
 if __name__ == "__main__":
-    # new_llm_optimize()
-    # for x in llm_input_files:
     regression_test("binarytrees.cpp", "optimized_binarytrees.cpp")
-    # while regression_test == False:
-    #    tell llm that the output is different, up to 3 times
-    #    then if it still fails, use output_log.txt to feed into new_llm_optimize() function
-
-
-
