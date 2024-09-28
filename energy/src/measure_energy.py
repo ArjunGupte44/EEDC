@@ -1,25 +1,114 @@
 from benchmark import Benchmark
+from evaluator import evaluator_llm
 import pickle
 
-USER_PREFIX = "/home/arjun/VIP_PTM/"
+def load_benchmark_data(filepath):
+    with open(filepath, "rb") as file:
+        contents = pickle.load(file)
+    return contents
 
-language = "C++"
-name = "binary-trees"
-original_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
-optimized_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
-executable = "./binarytrees.gpp-9.gpp_run"
-args = "21"
+def extract_content(contents):
+    # Convert keys to a sorted list to access the first and last elements
+    keys = list(contents.keys())
 
-bmark = Benchmark(language, name)
+    #print all values
+    # for key, (source_code, avg_energy, avg_runtime) in contents.items():
+    #     print("key:", key)
+    #     print("avg_energy:", avg_energy)
+    #     print("avg_runtime:", avg_runtime)
+    # print("\n")
 
-for optim_iter in range(2):
-    results_file = bmark.run(executable, args)
-    bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
+    # Extract the first(original) and last(current) elements
+    first_key = keys[0]
+    last_key = keys[-1]
+
+    first_value = contents[first_key]
+    last_value = contents[last_key]
 
 
-#Verify pickle file has the benchmark data dict stored correctly (source code, avg energy, avg runtime)
-with open(f"{USER_PREFIX}EEDC/energy/{language}/benchmark_data.pkl", "rb") as file:
-    contents = pickle.load(file)
+    # Loop through the contents to find the key with the lowest avg_energy
+    min_avg_energy = float('inf')
+    min_energy_key = None
+    for key, (source_code, avg_energy, avg_runtime) in contents.items():
+        if avg_energy < min_avg_energy:
+            min_avg_energy = avg_energy
+            min_energy_key = key
 
-#Uncomment the line below to see the benchmark data dict printed out
-# print(contents)
+    min_value = contents[min_energy_key]
+
+    # Prepare results in a structured format (dictionary)
+    benchmark_info = {
+        "original": {
+            "source_code": first_value[0],
+            "avg_energy": first_value[1],
+            "avg_runtime": first_value[2]
+        },
+        "lowest_avg_energy": {
+            "source_code": min_value[0],
+            "avg_energy": min_value[1],
+            "avg_runtime": min_value[2]
+        },
+        "current": {
+            "source_code": last_value[0],
+            "avg_energy": last_value[1],
+            "avg_runtime": last_value[2]
+        }
+    }
+    
+    return benchmark_info
+
+def print_benchmark_info(benchmark_info):
+    """Prints the benchmark information in a structured format."""
+    print("Original:")
+    # Uncomment to print source code
+    # print("Source Code:", benchmark_info["original"]["source_code"])
+    print("Average Energy:", benchmark_info["original"]["avg_energy"])
+    print("Average Runtime:", benchmark_info["original"]["avg_runtime"])
+    print("\n")
+
+    print("Lowest Average Energy:")
+    # Uncomment to print source code
+    # print("Source Code:", benchmark_info["lowest_avg_energy"]["source_code"])
+    print("Average Energy:", benchmark_info["lowest_avg_energy"]["avg_energy"])
+    print("Average Runtime:", benchmark_info["lowest_avg_energy"]["avg_runtime"])
+    print("\n")
+
+    print("Current:")
+    # Uncomment to print source code
+    # print("Source Code:", benchmark_info["current"]["source_code"])
+    print("Average Energy:", benchmark_info["current"]["avg_energy"])
+    print("Average Runtime:", benchmark_info["current"]["avg_runtime"])
+    print("\n")
+
+
+if __name__ == "__main__":
+    USER_PREFIX = "/home/jimmy/VIP_PTM/"
+
+    language = "C++"
+    name = "binary-trees"
+    original_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
+    optimized_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
+    executable = "./binarytrees.gpp-9.gpp_run"
+    args = "21"
+    pkl_path = f"{USER_PREFIX}EEDC/energy/{language}/benchmark_data.pkl"
+
+
+    bmark = Benchmark(language, name)
+
+    #run benchmark
+    for optim_iter in range(2):
+        results_file = bmark.run(executable, args)
+        bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
+
+    # Load benchmark data
+    contents = load_benchmark_data(pkl_path)
+    
+    # Find the required benchmark elements
+    benchmark_info = extract_content(contents)
+    
+    # Print the benchmark information
+    print_benchmark_info(benchmark_info)
+
+    #run evaluator
+    optimization_advice = evaluator_llm(benchmark_info)
+    print(optimization_advice)

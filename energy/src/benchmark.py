@@ -2,8 +2,8 @@ import subprocess
 import os
 import pickle
 
-
-USER_PREFIX = "/home/arjun/VIP_PTM/"
+#USER_PREFIX = "/home/Arjun/VIP_PTM/"
+USER_PREFIX = "/home/jimmy/VIP_PTM/"
 
 
 class Benchmark():
