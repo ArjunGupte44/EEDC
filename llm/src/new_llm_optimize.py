@@ -78,7 +78,7 @@ def master_script():
 
                 """
 
-            client = OpenAI(api_key="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")  
+            client = OpenAI(api_key="Insert API key")  
 
             completion = client.beta.chat.completions.parse(
                 model="gpt-4o-2024-08-06",
@@ -138,7 +138,7 @@ def handle_compilation_error(prompt, optimizations, filename):
             final_code: str
         
         new_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to compile with the following error message: {error_message}. Analyze the error message and explicitly identify the issue in the code that caused the compilation error. Then, consider if there's a need to use a different optimization strategy to compile successfully or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it compiles successfully. Ensure that the optimized code is both efficient and error-free and return it. """   
-        client = OpenAI(api_key="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")
+        client = OpenAI(api_key="Insert API key")
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
@@ -187,7 +187,7 @@ def handle_logic_error(prompt, optimizations, filename):
         else:
             new_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """   
 
-        client = OpenAI(api_key="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")
+        client = OpenAI(api_key="Insert API key")
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
