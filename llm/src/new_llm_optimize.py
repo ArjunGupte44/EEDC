@@ -78,7 +78,7 @@ def master_script():
 
                 """
 
-            client = OpenAI(api_key="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")  
+            client = OpenAI(api_key="openai_key")  
 
             completion = client.beta.chat.completions.parse(
                 model="gpt-4o-2024-08-06",
@@ -103,20 +103,21 @@ def master_script():
                 file.write(final_code)
 
             optimizations += 1
-            success = regression_test() 
+            success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
+            print(f"Optimization attempt {optimizations} with success {success}")
 
             while success != 1 and optimizations < 6:
                 if success == 0:
-                    print("Optimization failed due to logic error.")
+                    print(f"Optimization attempt {optimizations} with success {success}")
                     logicerrors += 1
                     success, optimizations = handle_logic_error(prompt, optimizations, filename)
                         
                 elif success == -1:
-                    print("Optimization failed due to compilation error.")
+                    print(f"Optimization attempt {optimizations} with success {success}")
                     success, optimizations = handle_compilation_error(prompt, optimizations, filename)
 
             if success == 1:
-                print("Optimization successful.")
+                print(f"Optimization attempt {optimizations} with success {success}")
             else:
                 print("Optimization failed.")
             
@@ -126,7 +127,7 @@ def handle_compilation_error(prompt, optimizations, filename):
     comperrors = 0
     while success == -1 and comperrors < 3:
         comperrors += 1
-        with open("dummycompilationerror.txt", "r") as file:            #dummy file to be replaced with actual compilation error file
+        with open("output_log.txt", "r") as file:            #dummy file to be replaced with actual compilation error file
             error_message = file.read()
         print(error_message)
 
@@ -138,7 +139,7 @@ def handle_compilation_error(prompt, optimizations, filename):
             final_code: str
         
         new_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to compile with the following error message: {error_message}. Analyze the error message and explicitly identify the issue in the code that caused the compilation error. Then, consider if there's a need to use a different optimization strategy to compile successfully or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it compiles successfully. Ensure that the optimized code is both efficient and error-free and return it. """   
-        client = OpenAI(api_key="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")
+        client = OpenAI(api_key="openai_key")
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
@@ -160,7 +161,7 @@ def handle_compilation_error(prompt, optimizations, filename):
             file.write(final_code)
 
         optimizations += 1
-        success = regression_test()
+        success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
 
     return success, optimizations
        
@@ -180,14 +181,14 @@ def handle_logic_error(prompt, optimizations, filename):
             final_code: str
         
         if logicerrors > 2:             #if logic errors persist, we do the same thing but give it information about the cases its failing
-            with open("dummylogicerror.txt", "r") as file:            
+            with open("output_log.txt", "r") as file:            
                 error_message = file.read()
             print(error_message)
             new_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Here are the output differences : {error_message}. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """
         else:
             new_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """   
 
-        client = OpenAI(api_key="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")
+        client = OpenAI(api_key="openai_key")
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
@@ -209,7 +210,7 @@ def handle_logic_error(prompt, optimizations, filename):
             file.write(final_code)
 
         optimizations += 1
-        success = regression_test()
+        success = regression_test("llm/llm_input_files/input_code/"+filename, destination_path+"optimized_"+filename)
 
     return success, optimizations
     

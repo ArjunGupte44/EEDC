@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-APR_INCLUDE_PATH = "/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/apr-1"
+APR_INCLUDE_PATH = "/usr/include/apr-1.0"
 APR_LIB = "apr-1"
 
 TREE_DEPTHS_TO_TEST = [6, 10, 15]    # 6 is the minimum depth
@@ -21,12 +21,12 @@ def compile_program(source_file, output_exec, output_log):
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(f"Compilation error for {source_file}:")
-        print(error_message, "\n")
+        # print(error_message, "\n")
         output_log.write(f"Compilation error for {source_file}:\n{error_message}\n\n")
         return False
 
 def run_program(exec_path, output_file, depth):
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w+') as f:
         result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
         if result.returncode != 0:
             print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
@@ -50,17 +50,17 @@ def regression_test(UNOPTIMIZED_FILE, OPTIMIZED_FILE):
     did_compile = True
     output_different = False
 
-    UNOPTIMIZED_EXEC = "./" + UNOPTIMIZED_FILE.split(".")[0]
-    OPTIMIZED_EXEC = "./" + OPTIMIZED_FILE.split(".")[0]
-    UNOPTIMIZED_OUTPUT = "output_" + UNOPTIMIZED_FILE.split(".")[0] + ".txt"
-    OPTIMIZED_OUTPUT = "output_" + OPTIMIZED_FILE.split(".")[0] + ".txt"
+    UNOPTIMIZED_EXEC = UNOPTIMIZED_FILE.split(".")[0]
+    OPTIMIZED_EXEC = OPTIMIZED_FILE.split(".")[0]
+    UNOPTIMIZED_OUTPUT = UNOPTIMIZED_FILE.split(".")[0] + ".txt"
+    OPTIMIZED_OUTPUT = OPTIMIZED_FILE.split(".")[0] + ".txt"
 
-    with open(TEST_OUTPUT_FILE, 'w') as output_log:
+    with open(TEST_OUTPUT_FILE, 'w+') as output_log:
         # output_log.write("Starting regression tests.\n\n")
 
-        if not compile_program(UNOPTIMIZED_FILE, UNOPTIMIZED_OUTPUT, output_log):
+        if not compile_program(UNOPTIMIZED_FILE, UNOPTIMIZED_EXEC, output_log):
             did_compile = False
-        if not compile_program(OPTIMIZED_FILE, OPTIMIZED_OUTPUT, output_log):
+        if not compile_program(OPTIMIZED_FILE, OPTIMIZED_EXEC, output_log):
             did_compile = False
 
         if not did_compile:
