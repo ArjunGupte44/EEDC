@@ -12,6 +12,4 @@ def test():
         sorted = [np.argsort(j)[:10] for j in c.T]
         print(sorted)
 
-
-
 test()

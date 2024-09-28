@@ -3,7 +3,7 @@ import os
 import pickle
 
 #USER_PREFIX = "/home/Arjun/VIP_PTM/"
-USER_PREFIX = "/home/jimmy/VIP_PTM/"
+# USER_PREFIX = "/home/jimmy/VIP_PTM/"
 
 
 class Benchmark():
@@ -14,7 +14,7 @@ class Benchmark():
 
     def run(self, executable, args):
         #First clear the contents of the energy data log file
-        log_file_path = f"{USER_PREFIX}EEDC/energy/{self.benchmark_language}.csv"
+        log_file_path = f"/EEDC/energy/{self.benchmark_language}.csv"
         if os.path.exists(log_file_path):
             file = open(log_file_path, "w")
             file.close()
