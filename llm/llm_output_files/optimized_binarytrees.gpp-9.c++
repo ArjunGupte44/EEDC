@@ -1,26 +1,11 @@
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <apr_pools.h>
+#include <vector>
+#include <algorithm>
+#include <omp.h>
 
-const size_t LINE_SIZE = 64;
-
-class Apr
+class Node 
 {
 public:
-    Apr() 
-    {
-        apr_initialize();
-    }
-
-    ~Apr() 
-    {
-        apr_terminate();
-    }
-};
-
-struct Node 
-{
     Node *l, *r;
     int check() const 
     {
@@ -33,42 +18,24 @@ struct Node
 class NodePool
 {
 public:
-    NodePool(size_t blockSize = 1024) : blockSize(blockSize), currentBlock(NULL), currentPos(0)
+    NodePool(size_t reserve_size)
     {
-        apr_pool_create_unmanaged(&pool);
-        allocateBlock();
+        nodes.reserve(reserve_size);
     }
 
-    ~NodePool() 
+    Node* alloc()
     {
-        apr_pool_destroy(pool);
+        nodes.emplace_back();
+        return &nodes.back();
     }
 
-    Node* alloc() 
+    void clear()
     {
-        if (currentPos == blockSize) 
-        {
-            allocateBlock();
-        }
-        return &currentBlock[currentPos++];
-    }
-
-    void clear() 
-    {
-        apr_pool_clear(pool);
-        allocateBlock();
+        nodes.clear();
     }
 
 private:
-    apr_pool_t* pool;
-    size_t blockSize;
-    Node* currentBlock;
-    size_t currentPos;
-
-    void allocateBlock() {
-        currentBlock = (Node*)apr_palloc(pool, blockSize * sizeof(Node));
-        currentPos = 0;
-    }
+    std::vector<Node> nodes;
 };
 
 Node *make(int d, NodePool &store)
@@ -76,10 +43,10 @@ Node *make(int d, NodePool &store)
     Node* root = store.alloc();
 
     if(d>0){
-        root->l=make(d-1, store);
-        root->r=make(d-1, store);
+        root->l = make(d-1, store);
+        root->r = make(d-1, store);
     }else{
-        root->l=root->r=nullptr;
+        root->l = root->r = nullptr;
     }
 
     return root;
@@ -87,25 +54,24 @@ Node *make(int d, NodePool &store)
 
 int main(int argc, char *argv[]) 
 {
-    Apr apr;
+    const int LINE_SIZE = 50;
     int min_depth = 4;
-    int max_depth = std::max(min_depth+2,
-                             (argc == 2 ? atoi(argv[1]) : 10));
+    int max_depth = std::max(min_depth+2, (argc == 2 ? atoi(argv[1]) : 10));
     int stretch_depth = max_depth+1;
 
     // Alloc then dealloc stretchdepth tree
     {
-        NodePool store;
-        Node *c = make(stretch_depth, store);
+        NodePool store((1 << (stretch_depth + 1)) - 1);
+        Node* c = make(stretch_depth, store);
         std::cout << "stretch tree of depth " << stretch_depth << "\t "
                   << "check: " << c->check() << std::endl;
     }
 
-    NodePool long_lived_store;
-    Node *long_lived_tree = make(max_depth, long_lived_store);
+    NodePool long_lived_store((1 << (max_depth + 1)) - 1);
+    Node* long_lived_tree = make(max_depth, long_lived_store);
 
     // buffer to store output of each thread
-    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth +1) * sizeof(char));
+    std::vector<char> outputstr(LINE_SIZE * (max_depth +1));
 
     #pragma omp parallel for 
     for (int d = min_depth; d <= max_depth; d += 2) 
@@ -113,8 +79,8 @@ int main(int argc, char *argv[])
         int iterations = 1 << (max_depth - d + min_depth);
         int c = 0;
 
-        // Create a memory pool for this thread to use.
-        NodePool store;
+        // Reserve the needed number of nodes in advance
+        NodePool store((1 << (d + 1)) - 1);
 
         for (int i = 1; i <= iterations; ++i) 
         {
@@ -123,15 +89,13 @@ int main(int argc, char *argv[])
             store.clear();
         }
 
-        // each thread write to separate location
-        sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
+        sprintf(outputstr.data() + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
            iterations, d, c);
     }
 
     // print all results
     for (int d = min_depth; d <= max_depth; d += 2) 
-        printf("%s", outputstr + (d * LINE_SIZE) );
-    free(outputstr);
+        printf("%s", outputstr.data() + (d * LINE_SIZE));
 
     std::cout << "long lived tree of depth " << max_depth << "\t "
               << "check: " << (long_lived_tree->check()) << "\n";
