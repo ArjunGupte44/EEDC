@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 from energy.src.measure_energy import get_evaluator_feedback
 from energy.src.benchmark import Benchmark
 
-def master_script(iter=0):
+def master_script():
     for filename in os.listdir("llm/llm_input_files/input_code"):
         
         # Temporary to only run on binarytrees
@@ -20,8 +20,10 @@ def master_script(iter=0):
         
         print(f"Running regression test on {filename}")
         regression_test_result = -3
-        compilation_errors, output_errors = 0, 0
-        while regression_test_result != 1:
+        compilation_errors, output_errors, success = 0, 0, 0
+
+        # Run llm optimization until successful regression test and energy reduced by 5%
+        while True:
             regression_test_result = regression_test("llm/llm_input_files/input_code/"+filename, "llm/llm_output_files/optimized_"+filename)
             
             # Compilation error in unoptimized file, exit script
@@ -33,9 +35,9 @@ def master_script(iter=0):
             if regression_test_result == -1:
                 if compilation_errors == 3:
                     print("Could not compile optimized file after 3 attempts, will re-optimize from original file")
-                    # Be careful with recursion here
-                    master_script()
-                    return
+                    llm_optimize(filename)
+                    compilation_errors = 0
+                    continue
                 print("Error in optimized file, re-optimizing")
                 handle_compilation_error(filename)
                 compilation_errors += 1
@@ -47,10 +49,9 @@ def master_script(iter=0):
                     handle_logic_error(filename, True)
                 elif output_errors > 3:
                     print("Still output differences after providing output differences to llm, will re-optimize from original file")
-                    # Be careful with recursion here
-                    master_script()
-                    return
-                print("Output difference in optimized file, re-optimizing")
+                    llm_optimize(filename)
+                    output_errors = 0
+                    continue
                 handle_logic_error(filename, False)
                 output_errors += 1
             
@@ -60,11 +61,11 @@ def master_script(iter=0):
                 print(f"{iter}: passing code to measure energy and get evaluator feedback")
                 get_evaluator_feedback("", "", "", "", "", "")
 
-                #call master_script() for evaluator feedback
-                #what's the stoping condition
-                if iter >= 2:
-                    return
-                master_script(iter+1)
+                # Stop if energy is not reduced by 5%
+                if success == 3:
+                    print("Energy was not reduced by 5% after 3 attempts, will re-optimize from original file")
+                    llm_optimize(filename)
+                    success = 0
 
 if __name__ == "__main__":
     master_script()
