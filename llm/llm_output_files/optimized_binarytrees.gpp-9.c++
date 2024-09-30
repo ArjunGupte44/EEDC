@@ -1,3 +1,4 @@
+```cpp
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
         NodePool store((1 << (stretch_depth + 1)) - 1);
         Node* c = make(stretch_depth, store);
         std::cout << "stretch tree of depth " << stretch_depth << "\t "
-                  << "check: " << c->check() << std::endl;
+                  << "check: " << stretch_tree->check() << std::endl;
     }
 
     NodePool long_lived_store((1 << (max_depth + 1)) - 1);
@@ -86,7 +87,6 @@ int main(int argc, char *argv[])
         {
             Node *a = make(d, store);
             c += a->check();
-            store.clear();
         }
 
         sprintf(outputstr.data() + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
@@ -102,3 +102,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+```

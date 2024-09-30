@@ -1,5 +1,5 @@
-from benchmark import Benchmark
-from evaluator import evaluator_llm
+from .benchmark import Benchmark
+from .evaluator import evaluator_llm
 import pickle
 
 def load_benchmark_data(filepath):
@@ -81,7 +81,7 @@ def print_benchmark_info(benchmark_info):
     print("\n")
 
 
-if __name__ == "__main__":
+def get_evaluator_feedback(language, name, args, original_code_path, optimized_code_path, executable):
     USER_PREFIX = "/home/jimmy/VIP_PTM/"
 
     language = "C++"
@@ -110,5 +110,8 @@ if __name__ == "__main__":
     print_benchmark_info(benchmark_info)
 
     #run evaluator
-    optimization_advice = evaluator_llm(benchmark_info)
-    print(optimization_advice)
+    evaluator_feedback = evaluator_llm(benchmark_info)
+    # print(evaluator_feedback)
+
+if __name__ == "__main__":
+    get_evaluator_feedback("", "", "", "", "", "")

@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from openai import OpenAI
 import json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+openai_key = os.getenv('API_KEY')
 
 def evaluator_llm(benchmark_info):
 
@@ -47,21 +51,27 @@ def evaluator_llm(benchmark_info):
     Average energy usage: {current_avg_energy}
     Average run time: {current_avg_runtime}
 
-    Please respond in natural language (English) with actionable suggestions for improving the code's performance in terms of energy usage.
+    Please respond in natural language (English) with actionable suggestions for improving the code's performance in terms of energy usage. Do not provide code.
     """
 
 
-    # client = OpenAI(api_key=)
+    client = OpenAI(api_key=openai_key)
     
-    # completion = client.beta.chat.completions.parse(
-    #     model="gpt-3.5-turbo",
-    #     messages=[
-    #         {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
-    #         {"role": "user", "content": prompt}
-    #     ]
-    # )
+    response = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
+            {"role": "user", "content": prompt}
+        ]
+    )
     
     # Extract the answer from the response
-    optimization_advice = response.choices[0].message
+    evaluator_feedback = response.choices[0].message.content
+
+    #write to file
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "evaluator_feedback.txt")
+    with open(file_path, "w") as file:
+        file.write(evaluator_feedback)
     
-    return optimization_advice
+    return evaluator_feedback

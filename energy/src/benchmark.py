@@ -3,7 +3,9 @@ import os
 import pickle
 
 #USER_PREFIX = "/home/Arjun/VIP_PTM/"
-# USER_PREFIX = "/home/jimmy/VIP_PTM/"
+USER_PREFIX = "/home/jimmy/VIP_PTM/"
+#define raletive path to RAPL
+rapl_main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../RAPL/main'))
 
 
 class Benchmark():
@@ -35,7 +37,7 @@ class Benchmark():
         #Run the benchmark
         try:
             result = subprocess.run(
-                f"sudo ../../RAPL/main \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}",
+                f"sudo {rapl_main_path} \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}",
                 shell=True,
                 stderr=subprocess.PIPE,
                 check=True
