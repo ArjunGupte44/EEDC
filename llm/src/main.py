@@ -1,8 +1,12 @@
+import sys
 import os
 from regression_test import regression_test
 from new_llm_optimize import llm_optimize, handle_compilation_error, handle_logic_error
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from energy.src.measure_energy import get_evaluator_feedback
+from energy.src.benchmark import Benchmark
 
-def master_script():
+def master_script(iter=0):
     for filename in os.listdir("llm/llm_input_files/input_code"):
         
         # Temporary to only run on binarytrees
@@ -53,7 +57,14 @@ def master_script():
             # Success
             if regression_test_result == 1:
                 print("Regression test successful")
-                return
+                print(f"{iter}: passing code to measure energy and get evaluator feedback")
+                get_evaluator_feedback("", "", "", "", "", "")
+
+                #call master_script() for evaluator feedback
+                #what's the stoping condition
+                if iter >= 2:
+                    return
+                master_script(iter+1)
 
 if __name__ == "__main__":
     master_script()

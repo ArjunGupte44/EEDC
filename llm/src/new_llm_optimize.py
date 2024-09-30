@@ -1,8 +1,11 @@
 from pydantic import BaseModel
 from openai import OpenAI
 from regression_test import regression_test
+from dotenv import load_dotenv
+import os
 
-openai_key = ""
+load_dotenv()
+openai_key = os.getenv('API_KEY')
 
 prompt = f"""You are tasked with optimizing the following code for energy efficiency, specifically focusing on time and space complexity. Analyze the code and provide an explicit step-by-step explanation of how sections of the code can be optimized. Explicitly consider multiple optimization paths (e.g., different algorithms, data structures). After evaluating the pros and cons of each, choose the most efficient strategy and update the code accordingly. After walking through the analysis, implement the necessary changes directly into the code. Some aspects of the code to consider for optimization include:
 
@@ -62,8 +65,23 @@ def llm_optimize(filename):
         selected_strategy: str
         final_code: str
 
+    #checking for evaluator feedback
+    # Get the current directory of the script
+    current_dir = os.path.dirname(__file__)
+    # Construct the absolute path to evaluator_feedback.txt
+    feedback_file_path = os.path.abspath(os.path.join(current_dir, "../../energy/src/evaluator_feedback.txt"))
+
+    if os.path.isfile(feedback_file_path):
+        with open(feedback_file_path, 'r') as file:
+            evaluator_feedback = file.read()
+            print("got evaluator feedback")
+        # print("File content:", content)
+    else:
+        evaluator_feedback = ""
+        print("Evaluator haven't gave feedback")
+
     # add code content to prompt
-    optimize_prompt = prompt + f" {code_content}"
+    optimize_prompt = prompt + f" {code_content}" + f"{evaluator_feedback}"
 
     client = OpenAI(api_key=openai_key)  
 
