@@ -2,8 +2,6 @@ import subprocess
 import os
 import pickle
 
-#USER_PREFIX = "/home/Arjun/VIP_PTM/"
-USER_PREFIX = "/home/jimmy/VIP_PTM/"
 #define raletive path to RAPL
 rapl_main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../RAPL/main'))
 
@@ -16,7 +14,7 @@ class Benchmark():
 
     def run(self, executable, args):
         #First clear the contents of the energy data log file
-        log_file_path = f"/EEDC/energy/{self.benchmark_language}.csv"
+        log_file_path = f"/EEDC/energy/src/{self.benchmark_language}.csv"
         if os.path.exists(log_file_path):
             file = open(log_file_path, "w")
             file.close()
@@ -52,6 +50,7 @@ class Benchmark():
         results_file = f"{self.benchmark_language}.csv"
         return results_file
 
+
     def process_results(self, results_file, optim_iter, source_code_path) -> float:
         energy_data_file = open(f"/home/jimmy/VIP_PTM/{results_file}", "r")
         benchmark_data = []
@@ -80,7 +79,7 @@ class Benchmark():
         self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
         
         #Update PKL file with latest version of benchmark data dict
-        with open(f"{USER_PREFIX}EEDC/energy/{self.benchmark_language}/benchmark_data.pkl", "wb") as benchmark_data_pkl_file:
+        with open(os.path.join(os.path.dirname(__file__), "..", f"{self.benchmark_language}/benchmark_data.pkl"), "wb") as benchmark_data_pkl_file:
             pickle.dump(self.benchmark_data, benchmark_data_pkl_file)
 
         #Close all files
