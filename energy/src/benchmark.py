@@ -36,6 +36,7 @@ class Benchmark():
         
         #Run the benchmark
         try:
+            # print(f"sudo {rapl_main_path} \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}")
             result = subprocess.run(
                 f"sudo {rapl_main_path} \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}",
                 shell=True,
@@ -52,7 +53,7 @@ class Benchmark():
         return results_file
 
     def process_results(self, results_file, optim_iter, source_code_path) -> float:
-        energy_data_file = open(f"{USER_PREFIX}EEDC/energy/{results_file}", "r")
+        energy_data_file = open(f"/home/jimmy/VIP_PTM/{results_file}", "r")
         benchmark_data = []
 
         for line in energy_data_file:

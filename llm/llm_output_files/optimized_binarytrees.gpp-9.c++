@@ -1,71 +1,59 @@
 ```cpp
 #include <iostream>
-#include <memory>
-#include <vector>
-#include <string>
-#include <sstream>
 #include <omp.h>
-#include <algorithm>
+#include <memory>
 
-const size_t LINE_SIZE = 64;
-
-struct Node {
-    std::shared_ptr<Node> l, r;
+class Node {
+public:
+    std::shared_ptr<Node> l = nullptr;
+    std::shared_ptr<Node> r = nullptr;
 
     int check() const {
-        if (l)
-            return l->check() + 1 + r->check();
+        if (l) return l->check() + 1 + r->check();
         else return 1;
     }
 };
 
 std::shared_ptr<Node> make(int d) {
-    auto root = std::make_shared<Node>();
-
-    if(d > 0){
-        root->l = make(d - 1);
-        root->r = make(d - 1);
+    if (d > 0) {
+        auto node = std::make_shared<Node>();
+        node->l = make(d-1);
+        node->r = make(d-1);
+        return node;
+    } else {
+        return std::make_shared<Node>();
     }
-
-    return root;
 }
 
-int main(int argc, char *argv[]) {
-    int min_depth = 4;
-    int max_depth = std::max(min_depth + 2, (argc == 2 ? atoi(argv[1]) : 10));
-    int stretch_depth = max_depth + 1;
-
-    // Alloc then dealloc stretchdepth tree
+int main() {
+    const int min_depth = 4;
+    const int max_depth = 10;
+   
+    // Stretch tree
     {
-        auto stretch_tree = make(stretch_depth);
-        std::cout << "stretch tree of depth " << stretch_depth << "\t "
-                  << "check: " << stretch_tree->check() << std::endl;
+        auto stretch_tree = make(max_depth + 1);
+        std::cout << "Stretch tree of depth " << max_depth + 1 << "\t check: " << stretch_tree->check() << std::endl;
     }
 
-    auto long_lived_tree = make(max_depth);
-    std::vector<std::string> outputs(max_depth + 1); // store strings instead of ostringstream
+    std::shared_ptr<Node> long_lived_tree = make(max_depth);
 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for
     for (int d = min_depth; d <= max_depth; d += 2) {
         int iterations = 1 << (max_depth - d + min_depth);
-        int c = 0;
+        int check_sum = 0; // Change c to a thread-local variable
 
-        for (int i = 1; i <= iterations; ++i) {
-            auto a = make(d);
-            c += a->check();
+        for (int i = 0; i < iterations; ++i) {
+            check_sum += make(d)->check();
         }
 
-        std::ostringstream oss;
-        oss << iterations << "\t trees of depth " << d << "\t check: " << c << "\n";
-        outputs[d] = oss.str(); // store the string representation
+        // Use a critical section to ensure the output is not jumbled.
+        #pragma omp critical 
+        {
+            std::cout << iterations << "\t trees of depth " << d << "\t check: " << check_sum << "\n";
+        }
     }
 
-    // print all results
-    for (int d = min_depth; d <= max_depth; d += 2)
-        std::cout << outputs[d];
-
-    std::cout << "long lived tree of depth " << max_depth << "\t "
-              << "check: " << (long_lived_tree->check()) << "\n";
+    std::cout << "Long-lived tree of depth " << max_depth << "\t check: " << long_lived_tree->check() << "\n";
 
     return 0;
 }
