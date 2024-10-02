@@ -83,13 +83,13 @@ def print_benchmark_info(benchmark_info):
 
 
 def get_evaluator_feedback(language, name, args, original_code_path, optimized_code_path, executable):
-    USER_PREFIX = "/home/jimmy/VIP_PTM/"
+    USER_PREFIX = os.path.join(os.path.dirname(__file__), f"../../")
     language = "C++"
     name = "binary-trees"
-    original_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
-    optimized_code_path = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.c++"
+    original_code_path = f"{USER_PREFIX}energy/src/binarytrees.gpp-9.c++"
+    optimized_code_path = f"{USER_PREFIX}energy/src/binarytrees.gpp-9.c++"
     # executable = "./binarytrees.gpp-9.gpp_run"
-    executable = "/home/jimmy/VIP_PTM/EEDC/energy/src/binarytrees.gpp-9.gpp_run" #running on root with make run
+    executable = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.gpp_run" #running on root with make run
     args = "21"
     pkl_path = os.path.join(os.path.dirname(__file__), f"../../energy/{language}/benchmark_data.pkl")
 

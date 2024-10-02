@@ -4,7 +4,7 @@ import pickle
 
 #define raletive path to RAPL
 rapl_main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../RAPL/main'))
-
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
 class Benchmark():
     def __init__(self, benchmark_language, benchmark_name):
@@ -16,7 +16,7 @@ class Benchmark():
         #First clear the contents of the energy data log file
         log_file_path = f"/EEDC/energy/src/{self.benchmark_language}.csv"
         if os.path.exists(log_file_path):
-            file = open(log_file_path, "w")
+            file = open(log_file_path, "w+")
             file.close()
 
         #Load the MSR kernel module
@@ -52,7 +52,7 @@ class Benchmark():
 
 
     def process_results(self, results_file, optim_iter, source_code_path) -> float:
-        energy_data_file = open(f"/home/jimmy/VIP_PTM/{results_file}", "r")
+        energy_data_file = open(f"{root_dir}/energy/src/C++.csv")
         benchmark_data = []
 
         for line in energy_data_file:

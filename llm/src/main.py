@@ -44,6 +44,7 @@ def master_script():
 
             # Output difference in optimized file, re-prompt
             if regression_test_result == 0:
+                print("Output difference in optimized file, calling handle_logic_error")
                 if output_errors == 3:
                     print("Output differences after 3 attempts, will provide output differences to llm")
                     handle_logic_error(filename, True)
