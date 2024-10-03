@@ -27,7 +27,7 @@ int main (int argc, char **argv)
 //  strcpy(command, "./" );
   strcat(command,argv[1]);
   //Language name
-  strcpy(path,"../");
+  strcpy(path,"/home/jimmy/VIP_PTM/EEDC/energy/src/");
 
 
   strcpy(language,argv[2]);
