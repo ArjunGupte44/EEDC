@@ -1,10 +1,14 @@
 import sys
 import os
+from dotenv import load_dotenv
 from regression_test import regression_test
 from new_llm_optimize import llm_optimize, handle_compilation_error, handle_logic_error
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from energy.src.measure_energy import get_evaluator_feedback
 from energy.src.benchmark import Benchmark
+load_dotenv()
+USER_PREFIX = os.getenv('USER_PREFIX')
+
 
 def master_script():
     for filename in os.listdir("llm/llm_input_files/input_code"):
@@ -24,7 +28,7 @@ def master_script():
 
         # Run llm optimization until successful regression test and energy reduced by 5%
         while True:
-            regression_test_result = regression_test("llm/llm_input_files/input_code/"+filename, "llm/llm_output_files/optimized_"+filename)
+            regression_test_result = regression_test(f"llm/llm_input_files/input_code/{filename}", f"llm/benchmarks_out/{filename.split(".")[0]}/optimized_{filename}", filename.split(".")[0])
             
             # Compilation error in unoptimized file, exit script
             if regression_test_result == -2:

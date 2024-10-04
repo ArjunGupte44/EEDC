@@ -1,5 +1,3 @@
-Testing with depth 6 	Outputs are the same.
-Testing with depth 10 	Outputs are the same.
-Testing with depth 15 	Outputs are the same.
+Outputs are the same.
 Regression test successful. Outputs are the same.
 

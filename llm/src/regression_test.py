@@ -1,33 +1,69 @@
 import subprocess
+import os
+from dotenv import load_dotenv
+load_dotenv()
+USER_PREFIX = os.getenv('USER_PREFIX')
 
-# Includes for apr
-APR_INCLUDE_PATH = "/usr/include/apr-1.0"
-APR_LIB = "apr-1"
-
-TREE_DEPTHS_TO_TEST = [6, 10, 15]    # 6 is the minimum depth
-
-TEST_OUTPUT_FILE = "llm/src/output_logs/regression_test_log.txt"
-UNOPTIMIZED_OUTPUT = "llm/src/output_logs/unoptimized_output.txt"
-OPTIMIZED_OUTPUT = "llm/src/output_logs/optimized_output.txt"
+TEST_OUTPUT_FILE = f"{USER_PREFIX}/EEDC/llm/src/output_logs/regression_test_log.txt"
+UNOPTIMIZED_OUTPUT = f"{USER_PREFIX}/EEDC/llm/src/output_logs/unoptimized_output.txt"
+OPTIMIZED_OUTPUT = f"{USER_PREFIX}/EEDC/llm/src/output_logs/optimized_output.txt"
 
 def compile_program(source_file, output_exec, output_log):
-    print(f"Compiling {source_file}")
-    try:
-        subprocess.run(
-            ["g++", "-o", output_exec, source_file, f"-I{APR_INCLUDE_PATH}", f"-l{APR_LIB}"],
-            stderr=subprocess.PIPE,
-            check=True 
-        )
-        print(f"Compiled {source_file} successfully.\n")
+    print(f"\nregression_test(compile_program): Compiling {source_file}\n")
+    # try:
+    #     subprocess.run(
+    #         ["g++", "-o", output_exec, source_file, f"-I{APR_INCLUDE_PATH}", f"-l{APR_LIB}"],
+    #         stderr=subprocess.PIPE,
+    #         check=True 
+    #     )
+    #     print(f"Compiled {source_file} successfully.\n")
+    #     return True
+    # except subprocess.CalledProcessError as e:
+    #     error_message = e.stderr.decode()
+    #     output_log.write(f"Compilation error for {source_file}:\n{error_message}\n\n")
+    #     return False
+    try: 
+        # Run make compile
+        current_dir = os.getcwd()
+        print(f"regression_test: Current directory: {current_dir}")
+        
+        subprocess.run(["make", "compile"], check=True)
+        print("regression_test: Makefile compile successfully.\n")
         return True
     except subprocess.CalledProcessError as e:
-        error_message = e.stderr.decode()
-        output_log.write(f"Compilation error for {source_file}:\n{error_message}\n\n")
+        print(f"regression_test: Makefile execution failed: {e}\n")
         return False
 
-def run_program(exec_path, output_file, depth):
+def run_program(exec_path, output_file):
+    # with open(output_file, 'w+') as f:
+    #     result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
+    #     if result.returncode != 0:
+    #         print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
+    #         return False
+    # return True
+
+    #compile optimized 
+    #This run original
+    print(f"\nregression_test(run_program): Running {exec_path}\n")
     with open(output_file, 'w+') as f:
-        result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
+        result = subprocess.run(["make", "run"], stdout=f, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
+            return False
+    return True
+
+def run_program_optimized(exec_path, output_file):
+    # with open(output_file, 'w+') as f:
+    #     result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
+    #     if result.returncode != 0:
+    #         print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
+    #         return False
+    # return True
+
+    #run optimized program
+    print(f"\nregression_test(run_program_optimized): Running {exec_path}\n")
+    with open(output_file, 'w+') as f:
+        result = subprocess.run(["make", "run_optimized"], stdout=f, stderr=subprocess.PIPE)
         if result.returncode != 0:
             print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
             return False
@@ -47,27 +83,33 @@ def compare_outputs(file1, file2, output_log):
             return False
 
 # Only for binarytrees
-def regression_test(UNOPTIMIZED_FILE, OPTIMIZED_FILE):
+def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
     output_different = False
+    print(f"\nregression_test unoptimized_file_path: {unoptimized_file_path}")
+    print(f"regression_test optimized_file_path: {optimized_file_path}\n")
 
-    UNOPTIMIZED_EXEC = UNOPTIMIZED_FILE.split(".")[0]
-    OPTIMIZED_EXEC = OPTIMIZED_FILE.split(".")[0]
+    unoptimized_file_exec = unoptimized_file_path.split(".")[0]
+    optimized_file_exec = optimized_file_path.split(".")[0]
 
-    # have to rewrite TES
+    #change current directory to benchmarks/folder
+    os.chdir(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{folder_name}")    
+
+    # compile program
     with open(TEST_OUTPUT_FILE, 'w+') as output_log:
-        if not compile_program(UNOPTIMIZED_FILE, UNOPTIMIZED_EXEC, output_log):
+
+        #compile program
+        if not compile_program(unoptimized_file_path, unoptimized_file_exec, output_log):
             # Return code when unoptimized file does not compile
             return -2
-        if not compile_program(OPTIMIZED_FILE, OPTIMIZED_EXEC, output_log):
+        if not compile_program(optimized_file_path, optimized_file_exec, output_log):
             # Return code when optimized file does not compile
             return -1
 
-        for depth in TREE_DEPTHS_TO_TEST:
-            output_log.write(f"Testing with depth {depth} \t")
-            run_program(UNOPTIMIZED_EXEC, UNOPTIMIZED_OUTPUT, str(depth))
-            run_program(OPTIMIZED_EXEC, OPTIMIZED_OUTPUT, str(depth))
-            if not compare_outputs(UNOPTIMIZED_OUTPUT, OPTIMIZED_OUTPUT, output_log):
-                output_different = True
+        #run program
+        run_program(unoptimized_file_exec, UNOPTIMIZED_OUTPUT)
+        run_program(optimized_file_exec, OPTIMIZED_OUTPUT)
+        if not compare_outputs(UNOPTIMIZED_OUTPUT, OPTIMIZED_OUTPUT, output_log):
+            output_different = True
         if output_different:
             return 0
         else:
@@ -75,4 +117,4 @@ def regression_test(UNOPTIMIZED_FILE, OPTIMIZED_FILE):
             return 1
 
 if __name__ == "__main__":
-    regression_test("binarytrees.cpp", "optimized_binarytrees.cpp")
+    regression_test("/home/jimmy/VIP_PTM/EEDC/llm/llm_input_files/input_code/binarytrees.gpp-9.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees/optimized_binarytrees.gpp-9.c++", "binarytrees")

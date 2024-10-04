@@ -6,7 +6,7 @@ import os
 
 load_dotenv()
 openai_key = os.getenv('API_KEY')
-
+USER_PREFIX = os.getenv('USER_PREFIX')
 prompt = f"""You are tasked with optimizing the following code for energy efficiency, specifically focusing on time and space complexity. Analyze the code and provide an explicit step-by-step explanation of how sections of the code can be optimized. Explicitly consider multiple optimization paths (e.g., different algorithms, data structures). After evaluating the pros and cons of each, choose the most efficient strategy and update the code accordingly. After walking through the analysis, implement the necessary changes directly into the code. Some aspects of the code to consider for optimization include:
 
                 Reduction of nested loops
@@ -74,36 +74,37 @@ def llm_optimize(filename):
     if os.path.isfile(feedback_file_path):
         with open(feedback_file_path, 'r') as file:
             evaluator_feedback = file.read()
-            print("got evaluator feedback")
+            print("llm_optimize: got evaluator feedback")
         # print("File content:", content)
     else:
         evaluator_feedback = ""
-        print("Evaluator haven't gave feedback")
+        print("llm_optimize: Evaluator haven't gave feedback")
 
     # add code content to prompt
     optimize_prompt = prompt + f" {code_content}" + f"{evaluator_feedback}"
 
-    client = OpenAI(api_key=openai_key)  
+    # client = OpenAI(api_key=openai_key)  
 
-    completion = client.beta.chat.completions.parse(
-        model="gpt-4o-2024-08-06",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
-            {
-                "role": "user",
-                "content": optimize_prompt
-            }
-        ],
-        response_format=OptimizationReasoning
-    )
+    # completion = client.beta.chat.completions.parse(
+    #     model="gpt-4o-2024-08-06",
+    #     messages=[
+    #         {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
+    #         {
+    #             "role": "user",
+    #             "content": optimize_prompt
+    #         }
+    #     ],
+    #     response_format=OptimizationReasoning
+    # )
 
-    if completion.choices[0].message.parsed.final_code == "":
-        print("Error in llm completion")
-        return
+    # if completion.choices[0].message.parsed.final_code == "":
+    #     print("Error in llm completion")
+    #     return
     
-    final_code = completion.choices[0].message.parsed.final_code
-
-    destination_path = "llm/llm_output_files/"
+    # final_code = completion.choices[0].message.parsed.final_code
+    final_code = "hello this is final code"
+    
+    destination_path = f"llm/benchmarks_out/{filename.split(".")[0]}"
     with open(destination_path+"optimized_"+filename, "w") as file:
         file.write(final_code)
 
