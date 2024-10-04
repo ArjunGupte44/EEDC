@@ -113,6 +113,8 @@ def get_evaluator_feedback(filename):
     #run evaluator
     evaluator_feedback = evaluator_llm(benchmark_info)
     # print(evaluator_feedback)
+    
+    return benchmark_info
 
 if __name__ == "__main__":
     get_evaluator_feedback("", "", "", "", "", "")

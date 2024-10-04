@@ -53,7 +53,7 @@ class Benchmark():
 
 
     def process_results(self, results_file, optim_iter, source_code_path) -> float:
-        energy_data_file = open(f"{root_dir}/energy/src/C++.csv")
+        energy_data_file = open(f"{root_dir}/energy/src/c++.csv")
         benchmark_data = []
 
         for line in energy_data_file:
