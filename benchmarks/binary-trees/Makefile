@@ -3,7 +3,7 @@ compile:
 
 measure:
 	sudo modprobe msr
-	sudo ../../RAPL/main "./binarytrees.gpp-9.gpp_run 21" C++ binary-trees
+	sudo -E ../../RAPL/main "./binarytrees.gpp-9.gpp_run 21" C++ binary-trees
 
 run:
 	./binarytrees.gpp-9.gpp_run 21

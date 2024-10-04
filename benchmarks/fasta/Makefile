@@ -3,7 +3,7 @@ compile:
 
 measure:
 	sudo modprobe msr
-	sudo ../../RAPL/main "./fasta.gpp-5.gpp_run 25000000" C++ fasta
+	sudo -E ../../RAPL/main "./fasta.gpp-5.gpp_run 25000000" C++ fasta
 
 run:
 	./fasta.gpp-5.gpp_run 25000000

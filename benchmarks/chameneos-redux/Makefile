@@ -3,7 +3,7 @@ compile:
 
 measure:
 	sudo modprobe msr
-	sudo ../../RAPL/main "./chameneosredux.gpp-5.gpp_run 6000000"
+	sudo -E ../../RAPL/main "./chameneosredux.gpp-5.gpp_run 6000000"
 
 run:
 	./chameneosredux.gpp-5.gpp_run 6000000
