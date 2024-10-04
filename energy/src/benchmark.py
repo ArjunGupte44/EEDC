@@ -34,10 +34,10 @@ class Benchmark():
         
         #Run the benchmark
         try:
-            print(f"sudo {rapl_main_path} \"{root_dir}/energy/src/{executable} {args}\" {self.benchmark_language} {self.benchmark_name}")
+            print(f"sudo -E {rapl_main_path} \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}")
             result = subprocess.run(
                 #executable need a absolute path inorder to run from root using make run
-                f"sudo {rapl_main_path} \"{root_dir}/energy/src/{executable} {args}\" {self.benchmark_language} {self.benchmark_name}",
+                f"sudo -E {rapl_main_path} \"{executable} {args}\" {self.benchmark_language} {self.benchmark_name}",
                 shell=True,
                 stderr=subprocess.PIPE,
                 check=True
