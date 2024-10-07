@@ -76,7 +76,7 @@ class Benchmark():
         avg_runtime /= len(benchmark_data)
 
         #Append results to benchmark data dict
-        source_code_file = open(source_code_path, "r")
+        source_code_file = open(optimized_code_path, "r")
         source_code = source_code_file.read()
         self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
         # print(f"This is the iteration {optim_iter} of benchmark data: {self.benchmark_data[optim_iter]}")

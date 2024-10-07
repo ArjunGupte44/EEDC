@@ -71,6 +71,7 @@ def master_script(optim_iter):
             
             # Success
             if regression_test_result == 1:
+                success += 1
                 print("Regression test successful")
                 break
         
