@@ -58,16 +58,14 @@ def master_script():
             
             # Success
             if regression_test_result == 1:
+                success += 1
                 print("Regression test successful")
                 print(f"{iter}: passing code to measure energy and get evaluator feedback")
-                get_evaluator_feedback("", "", "", "", "", "")
+                get_evaluator_feedback(filename)
 
-                # Not final logic, should be to re-prompt with code with best performance. Should probably stop if it cannot optimize within X amount of tries.
-                # Stop if energy is not reduced by 5%
-                if success == 3:
-                    print("Energy was not reduced by 5% after 3 attempts, will re-optimize from original file")
-                    llm_optimize(filename)
-                    success = 0
+                if success == 5:
+                    print("Main script has successfully optimized code 5 times")
+                    return 
 
 if __name__ == "__main__":
     master_script()

@@ -52,8 +52,8 @@ class Benchmark():
         return results_file
 
 
-    def process_results(self, results_file, optim_iter, source_code_path) -> float:
-        energy_data_file = open(f"{root_dir}/energy/src/c++.csv")
+    def process_results(self, results_file, optimized_code_path) -> float:
+        energy_data_file = open(f"{root_dir}/energy/src/{results_file}")
         benchmark_data = []
 
         for line in energy_data_file:
@@ -75,9 +75,11 @@ class Benchmark():
         avg_runtime /= len(benchmark_data)
 
         #Append results to benchmark data dict
-        source_code_file = open(source_code_path, "r")
+        source_code_file = open(optimized_code_path, "r")
         source_code = source_code_file.read()
-        self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
+
+        # Will delete because no more optim_iter
+        # self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
         
         #Update PKL file with latest version of benchmark data dict
         with open(os.path.join(os.path.dirname(__file__), "..", f"{self.benchmark_language}/benchmark_data.pkl"), "wb") as benchmark_data_pkl_file:

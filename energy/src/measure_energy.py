@@ -89,17 +89,19 @@ def get_evaluator_feedback(filename):
     name = filename.split(".")[0]
     original_code_path = f"{USER_PREFIX}llm/llm_input_files/input_code/{filename}"
     optimized_code_path = f"{USER_PREFIX}llm/llm_output_files/optimized_{filename}"
-    executable = f"{USER_PREFIX}llm/llm_input_files/input_code/{filename.split('.')[0]}"
-    # executable = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.gpp_run" #running on root with make run
+
+    # Assuming regression test created a optimized executable
+    executable = f"{USER_PREFIX}llm/output_files/optimized_{filename.split('.')[0]}"
+
+    # Needs to be changed for other benchmarks
     args = "21"
     pkl_path = os.path.join(os.path.dirname(__file__), f"../../energy/{language}/benchmark_data.pkl")
 
     bmark = Benchmark(language, name)
 
     #run benchmark
-    for optim_iter in range(2):
-        results_file = bmark.run(executable, args)
-        bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
+    results_file = bmark.run(executable, args)
+    bmark.process_results(results_file, optimized_code_path)
 
     # Load benchmark data
     contents = load_benchmark_data(pkl_path)
