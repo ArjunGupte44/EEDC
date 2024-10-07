@@ -1,23 +1,35 @@
-from .benchmark import Benchmark
-from .evaluator import evaluator_llm
+try:
+    # Try relative imports
+    from .benchmark import Benchmark
+    from .evaluator import evaluator_llm
+except ImportError:
+    # If relative imports fail, use absolute imports
+    from benchmark import Benchmark
+    from evaluator import evaluator_llm
 import pickle
 import os
+from dotenv import load_dotenv
+import os
+load_dotenv()
+USER_PREFIX = os.getenv('USER_PREFIX')
+benchmark_data = {}
 
 def load_benchmark_data(filepath):
     with open(filepath, "rb") as file:
         contents = pickle.load(file)
+    # print(contents)
     return contents
 
 def extract_content(contents):
     # Convert keys to a sorted list to access the first and last elements
     keys = list(contents.keys())
 
-    #print all values
-    # for key, (source_code, avg_energy, avg_runtime) in contents.items():
-    #     print("key:", key)
-    #     print("avg_energy:", avg_energy)
-    #     print("avg_runtime:", avg_runtime)
-    # print("\n")
+    # print all values
+    for key, (source_code, avg_energy, avg_runtime) in contents.items():
+        print("key:", key)
+        print("avg_energy:", avg_energy)
+        print("avg_runtime:", avg_runtime)
+    print("\n")
 
     # Extract the first(original) and last(current) elements
     first_key = keys[0]
@@ -82,24 +94,41 @@ def print_benchmark_info(benchmark_info):
     print("\n")
 
 
-def get_evaluator_feedback(filename):
-    # filename = binarytrees.gpp-9.c++
-    USER_PREFIX = os.path.join(os.path.dirname(__file__), f"../../")
+def get_evaluator_feedback(filename, optim_iter):
+
     language = filename.split(".")[-1]
+    # print(f"language: {language}")
+
     name = filename.split(".")[0]
-    original_code_path = f"{USER_PREFIX}llm/llm_input_files/input_code/{filename}"
-    optimized_code_path = f"{USER_PREFIX}llm/llm_output_files/optimized_{filename}"
-    executable = f"{USER_PREFIX}llm/llm_input_files/input_code/{filename.split('.')[0]}"
-    # executable = f"{USER_PREFIX}EEDC/energy/src/binarytrees.gpp-9.gpp_run" #running on root with make run
-    args = "21"
+    # print(f"name: {name}")
+
+    original_code_path = f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}"
+    # print(f"original_code_path: {original_code_path}")
+
+    optimized_code_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
+    # print(f"optimized_code_path: {optimized_code_path}")
+
+    # if optim_iter == 0:
+    #     #if first iteration, get the original code executable
+    #     executable = f"{USER_PREFIX}/EEDC/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.{filename.split('.')[1]}.gpp_run"
+    #     # print(f"executable: {executable}")
+    # else:
+    #     #optimized code executable
+    #     executable = f"{USER_PREFIX}/EEDC/benchmarks_out/{filename.split('.')[0]}/optimized_{filename.split('.')[0]}.{filename.split('.')[1]}.gpp_run"
+    #     # print(f"executable: {executable}")
+
     pkl_path = os.path.join(os.path.dirname(__file__), f"../../energy/{language}/benchmark_data.pkl")
-
-    bmark = Benchmark(language, name)
-
-    #run benchmark
-    for optim_iter in range(2):
-        results_file = bmark.run(executable, args)
+    # print(f"This is the pkl file path: {pkl_path}")
+    
+    #create a benchmark object
+    bmark = Benchmark(language, name, filename, benchmark_data)
+    
+    if optim_iter == 0:
+        results_file = bmark.run(optim_iter)
         bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
+    #run benchmark
+    results_file = bmark.run(optim_iter)
+    bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
 
     # Load benchmark data
     contents = load_benchmark_data(pkl_path)
@@ -111,10 +140,18 @@ def get_evaluator_feedback(filename):
     print_benchmark_info(benchmark_info)
 
     #run evaluator
+    print("get_evaluator_feedback: Getting evaluator feedback ....")
     evaluator_feedback = evaluator_llm(benchmark_info)
     # print(evaluator_feedback)
     
     return benchmark_info
 
 if __name__ == "__main__":
-    get_evaluator_feedback("", "", "", "", "", "")
+    # get_evaluator_feedback("binarytrees.gpp-9.c++", 0)
+    for i in range(0,4):
+        print(f"Iteration {i}")
+        get_evaluator_feedback("binarytrees.gpp-9.c++", i)
+
+    # with open("/home/jimmy/VIP_PTM/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
+    #     contents = pickle.load(file)
+    #     print(contents)

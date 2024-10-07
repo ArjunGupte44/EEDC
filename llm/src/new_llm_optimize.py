@@ -50,8 +50,12 @@ prompt = f"""You are tasked with optimizing the following code for energy effici
                 Here is the actual code to be optimized: 
                 """
 
-def llm_optimize(filename):
-    source_path = "llm/llm_input_files/input_code/" + filename
+def llm_optimize(filename, optim_iter):
+    source_path = f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/" + filename
+
+    if optim_iter != 0:
+        source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
+
     with open(source_path, "r") as file:
         code_content = file.read()
 
@@ -83,39 +87,43 @@ def llm_optimize(filename):
     # add code content to prompt
     optimize_prompt = prompt + f" {code_content}" + f"{evaluator_feedback}"
 
-    # client = OpenAI(api_key=openai_key)  
+    with open(f"{USER_PREFIX}/EEDC/llm/src/output_logs/optimize_prompt_log.txt", "w") as f:
+        f.write(optimize_prompt)
 
-    # completion = client.beta.chat.completions.parse(
-    #     model="gpt-4o-2024-08-06",
-    #     messages=[
-    #         {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
-    #         {
-    #             "role": "user",
-    #             "content": optimize_prompt
-    #         }
-    #     ],
-    #     response_format=OptimizationReasoning
-    # )
+    client = OpenAI(api_key=openai_key)  
 
-    # if completion.choices[0].message.parsed.final_code == "":
-    #     print("Error in llm completion")
-    #     return
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant. Think through the code optimizations strategies possible step by step"},
+            {
+                "role": "user",
+                "content": optimize_prompt
+            }
+        ],
+        response_format=OptimizationReasoning
+    )
+
+    if completion.choices[0].message.parsed.final_code == "":
+        print("Error in llm completion")
+        return
     
-    # final_code = completion.choices[0].message.parsed.final_code
-    final_code = "hello this is final code"
+    final_code = completion.choices[0].message.parsed.final_code
+    # final_code = "hello this is final code"
     
-    destination_path = f"llm/benchmarks_out/{filename.split(".")[0]}"
-    with open(destination_path+"optimized_"+filename, "w") as file:
+    print(f"\nnew_llm_optimize (llm_optimize): writing optimized code to llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}")
+    destination_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}"
+    with open(destination_path+"/optimized_"+filename, "w") as file:
         file.write(final_code)
 
     # Success code
     return 0
 
 def handle_compilation_error(filename):
-    with open("llm/llm_output_files/optimized_"+filename, "r") as file:
+    with open(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", "r") as file:
         optimized_code = file.read()
 
-    with open("llm/src/output_logs/regression_test_log.txt", "r") as file:
+    with open(f"{USER_PREFIX}/EEDC/llm/src/output_logs/regression_test_log.txt", "r") as file:
         error_message = file.read()
                       
         class ErrorReasoning(BaseModel):
@@ -124,6 +132,7 @@ def handle_compilation_error(filename):
         
         compilation_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to compile with the following error message: {error_message}. Analyze the error message and explicitly identify the issue in the code that caused the compilation error. Then, consider if there's a need to use a different optimization strategy to compile successfully or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it compiles successfully. Ensure that the optimized code is both efficient and error-free and return it. """   
         
+        print("handle_compilation_error: promting for re-optimization")
         client = OpenAI(api_key=openai_key)
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
@@ -139,26 +148,30 @@ def handle_compilation_error(filename):
 
         final_code = completion.choices[0].message.parsed.final_code
 
-        destination_path = "llm/llm_output_files/"
-        with open(destination_path+"optimized_"+filename, "w") as file:
+        print(f"handle_compilation_error: writing re-optimized code to optimized_{filename}")
+        destination_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}"
+        with open(destination_path+"/optimized_"+filename, "w") as file:
             file.write(final_code)
 
 def handle_logic_error(filename, use_output_differences):
-    with open("llm/llm_output_files/optimized_"+filename, "r") as file:
+    with open(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", "r") as file:
         optimized_code = file.read()
 
-    with open("llm/src/output_logs/regression_test_log.txt", "r") as file:
+    with open(f"{USER_PREFIX}/EEDC/llm/src/output_logs/regression_test_log.txt", "r") as file:
         output_differences = file.read()
     
     class ErrorReasoning(BaseModel):
         analysis: str
         final_code: str
         
-    if not use_output_differences:
-        logic_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """   
-    else:
-        logic_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Here are the output differences : {output_differences}. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """
-
+    # if not use_output_differences:
+    #     logic_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """   
+    # else:
+    #     logic_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Here are the output differences : {output_differences}. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """
+    
+    #just prompting it to give output difference everytime
+    logic_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to produce the same outputs as the original source code. Here are the output differences : {output_differences}. Analyze the source code and the optimized code and explicitly identify the potential reasons that caused the logic error. Then, consider if there's a need to use a different optimization strategy to match the outputs or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it will match the source code's outputs for any input. Ensure that the optimized code is both efficient and error-free and return it. """
+    
     client = OpenAI(api_key=openai_key)
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-2024-08-06",
@@ -174,6 +187,8 @@ def handle_logic_error(filename, use_output_differences):
 
     final_code = completion.choices[0].message.parsed.final_code
 
-    destination_path = "llm/llm_output_files/"
-    with open(destination_path+"optimized_"+filename, "w") as file:
+
+    destination_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}"
+    with open(destination_path+"/optimized_"+filename, "w") as file:
         file.write(final_code)
+

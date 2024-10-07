@@ -10,63 +10,85 @@ OPTIMIZED_OUTPUT = f"{USER_PREFIX}/EEDC/llm/src/output_logs/optimized_output.txt
 
 def compile_program(source_file, output_exec, output_log):
     print(f"\nregression_test(compile_program): Compiling {source_file}\n")
-    # try:
-    #     subprocess.run(
-    #         ["g++", "-o", output_exec, source_file, f"-I{APR_INCLUDE_PATH}", f"-l{APR_LIB}"],
-    #         stderr=subprocess.PIPE,
-    #         check=True 
-    #     )
-    #     print(f"Compiled {source_file} successfully.\n")
-    #     return True
-    # except subprocess.CalledProcessError as e:
-    #     error_message = e.stderr.decode()
-    #     output_log.write(f"Compilation error for {source_file}:\n{error_message}\n\n")
-    #     return False
     try: 
         # Run make compile
-        current_dir = os.getcwd()
-        print(f"regression_test: Current directory: {current_dir}")
-        
-        subprocess.run(["make", "compile"], check=True)
+        # Redirect stdout and stderr to the regression_test_log file
+        subprocess.run(
+                ["make", "compile"], 
+                check=True,
+                stdout=output_log, 
+                stderr=output_log  # Redirect stderr to the same file as stdout
+        )
         print("regression_test: Makefile compile successfully.\n")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"regression_test: Makefile execution failed: {e}\n")
+        print(f"regression_test: Makefile compile failed: {e}\n")
+        return False
+
+def compile_optimized_program(optimized_source_file, optimized_output_exec, output_log):
+    print(f"\nregression_test(compile_program): Compiling {optimized_source_file}\n")
+    try: 
+        # Run make compile
+        # Redirect stdout and stderr to the regression_test_log file
+        subprocess.run(
+                ["make", "compile_optimized"],
+                check=True,
+                stdout=output_log, 
+                stderr=output_log  # Redirect stderr to the same file as stdout
+        )
+        print("regression_test: Makefile compile successfully.\n")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"regression_test: Makefile compile failed: {e}\n")
         return False
 
 def run_program(exec_path, output_file):
-    # with open(output_file, 'w+') as f:
-    #     result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
-    #     if result.returncode != 0:
-    #         print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
-    #         return False
-    # return True
+    # This run original
+    print(f"\nregression_test(run_program): Running original {exec_path}\n")
+    
+    # Run the make command and capture the output in a variable
+    result = subprocess.run(["make", "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    
+    # Check for errors
+    if result.returncode != 0:
+        print(f"Runtime error on {exec_path} with error message: {result.stderr}")
+        return False
 
-    #compile optimized 
-    #This run original
-    print(f"\nregression_test(run_program): Running {exec_path}\n")
+    # Filter out the unwanted lines
+    filtered_output = "\n".join(
+        line for line in result.stdout.splitlines()
+        if not (line.startswith("make[") or line.startswith("./"))
+    )
+    
+    # Write the filtered output to the file
     with open(output_file, 'w+') as f:
-        result = subprocess.run(["make", "run"], stdout=f, stderr=subprocess.PIPE)
-        if result.returncode != 0:
-            print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
-            return False
+        f.write(filtered_output)
+    
     return True
 
 def run_program_optimized(exec_path, output_file):
-    # with open(output_file, 'w+') as f:
-    #     result = subprocess.run([exec_path, depth], stdout=f, stderr=subprocess.PIPE)
-    #     if result.returncode != 0:
-    #         print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
-    #         return False
-    # return True
 
-    #run optimized program
-    print(f"\nregression_test(run_program_optimized): Running {exec_path}\n")
+    # This run optimized
+    print(f"\nregression_test(run_program): Running optimized {exec_path}\n")
+    
+    # Run the make command and capture the output in a variable
+    result = subprocess.run(["make", "run_optimized"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    
+    # Check for errors
+    if result.returncode != 0:
+        print(f"Runtime error on {exec_path} with error message: {result.stderr}")
+        return False
+
+    # Filter out the unwanted lines
+    filtered_output = "\n".join(
+        line for line in result.stdout.splitlines()
+        if not (line.startswith("make[") or line.startswith("./"))
+    )
+    
+    # Write the filtered output to the file
     with open(output_file, 'w+') as f:
-        result = subprocess.run(["make", "run_optimized"], stdout=f, stderr=subprocess.PIPE)
-        if result.returncode != 0:
-            print(f"Runtime error on {exec_path} with error message: {result.stderr.decode()}")
-            return False
+        f.write(filtered_output)
+    
     return True
 
 def compare_outputs(file1, file2, output_log):
@@ -91,8 +113,11 @@ def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
     unoptimized_file_exec = unoptimized_file_path.split(".")[0]
     optimized_file_exec = optimized_file_path.split(".")[0]
 
-    #change current directory to benchmarks/folder
+    #change current directory to benchmarks/folder to run make file
     os.chdir(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{folder_name}")    
+    current_dir = os.getcwd()
+    print(f"Current directory: {current_dir}")
+
 
     # compile program
     with open(TEST_OUTPUT_FILE, 'w+') as output_log:
@@ -101,13 +126,13 @@ def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
         if not compile_program(unoptimized_file_path, unoptimized_file_exec, output_log):
             # Return code when unoptimized file does not compile
             return -2
-        if not compile_program(optimized_file_path, optimized_file_exec, output_log):
+        if not compile_optimized_program(optimized_file_path, optimized_file_exec, output_log):
             # Return code when optimized file does not compile
             return -1
 
         #run program
         run_program(unoptimized_file_exec, UNOPTIMIZED_OUTPUT)
-        run_program(optimized_file_exec, OPTIMIZED_OUTPUT)
+        run_program_optimized(optimized_file_exec, OPTIMIZED_OUTPUT)
         if not compare_outputs(UNOPTIMIZED_OUTPUT, OPTIMIZED_OUTPUT, output_log):
             output_different = True
         if output_different:
@@ -117,4 +142,6 @@ def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
             return 1
 
 if __name__ == "__main__":
-    regression_test("/home/jimmy/VIP_PTM/EEDC/llm/llm_input_files/input_code/binarytrees.gpp-9.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees/optimized_binarytrees.gpp-9.c++", "binarytrees")
+
+    #input to regresstion thest should be path to optimized and original code
+    regression_test("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/chameneosredux.gpp-5.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/optimized_chameneosredux.gpp-5.c++", "chameneosredux")

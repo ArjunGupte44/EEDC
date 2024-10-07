@@ -1,14 +1,3 @@
-/* The Computer Language Benchmarks Game
- * http://benchmarksgame.alioth.debian.org/
- *
- * contributed by Jon Harrop
- * modified by Alex Mizrahi
- * modified by Andreas Schäfer
- * very minor omp tweak by The Anh Tran
- * modified to use apr_pools by Dave Compton
- *  *reset*
- */
-
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>

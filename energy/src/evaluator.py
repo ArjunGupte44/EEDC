@@ -13,7 +13,7 @@ def evaluator_llm(benchmark_info):
     original_source_code = benchmark_info["original"]["source_code"]
     original_avg_energy = benchmark_info["original"]["avg_energy"]
     original_avg_runtime = benchmark_info["original"]["avg_runtime"]
-
+    # print(original_source_code)
     lowest_soruce_code = benchmark_info["lowest_avg_energy"]["source_code"]
     lowest_avg_energy = benchmark_info["lowest_avg_energy"]["avg_energy"]
     lowest_avg_runtime = benchmark_info["lowest_avg_energy"]["avg_runtime"]
@@ -54,6 +54,7 @@ def evaluator_llm(benchmark_info):
     Please respond in natural language (English) with actionable suggestions for improving the code's performance in terms of energy usage. Do not provide code.
     """
 
+        
 
     client = OpenAI(api_key=openai_key)
     
