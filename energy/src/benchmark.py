@@ -30,7 +30,7 @@ class Benchmark():
         current_dir = os.getcwd()
         print(f"Current directory: {current_dir}")
 
-        #for testing purpose
+        #collect original data
         if optim_iter == 0: 
             try: 
                 subprocess.run(["make", "measure"], check=True)
@@ -39,15 +39,16 @@ class Benchmark():
             except subprocess.CalledProcessError as e:
                 print(f"Benchmark.run: make measure failed: {e}\n")
             return False
-        
+        else:
+        #might need to change things here
         #measure the optimize code energy 
-        try: 
-            subprocess.run(["make", "measure_optimized"], check=True)
-            print("Benchmark.run: make measure successfully\n")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"Benchmark.run: make measure failed: {e}\n")
-        return False
+            try: 
+                subprocess.run(["make", "measure_optimized"], check=True)
+                print("Benchmark.run: make measure successfully\n")
+                return True
+            except subprocess.CalledProcessError as e:
+                print(f"Benchmark.run: make measure failed: {e}\n")
+            return False
 
         #Return path to results file
         results_file = f"{self.benchmark_language}.csv"
@@ -76,10 +77,9 @@ class Benchmark():
         avg_runtime /= len(benchmark_data)
 
         #Append results to benchmark data dict
-        source_code_file = open(optimized_code_path, "r")
+        source_code_file = open(source_code_path, "r")
         source_code = source_code_file.read()
         self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
-        # print(f"This is the iteration {optim_iter} of benchmark data: {self.benchmark_data[optim_iter]}")
 
         #Update PKL file with latest version of benchmark data dict
         with open(f"{USER_PREFIX}/EEDC/energy/{self.benchmark_language}/benchmark_data.pkl", "wb") as benchmark_data_pkl_file:

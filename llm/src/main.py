@@ -82,10 +82,12 @@ def master_script(optim_iter):
 
 if __name__ == "__main__":
 
-    for optim_iter in range(5):
+    #run for 5 iterations
+    for optim_iter in range(0, 5):
         print(f"Optimized iteration {optim_iter}")
         master_script(optim_iter)
 
+    #write result
     print("EEDC Optimization Complete, writing results to file.....")
     with open("/home/jimmy/VIP_PTM/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
         contents = pickle.load(file)

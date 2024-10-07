@@ -108,24 +108,12 @@ def get_evaluator_feedback(filename, optim_iter):
     optimized_code_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
     # print(f"optimized_code_path: {optimized_code_path}")
 
-    # if optim_iter == 0:
-    #     #if first iteration, get the original code executable
-    #     executable = f"{USER_PREFIX}/EEDC/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.{filename.split('.')[1]}.gpp_run"
-    #     # print(f"executable: {executable}")
-    # else:
-    #     #optimized code executable
-    #     executable = f"{USER_PREFIX}/EEDC/benchmarks_out/{filename.split('.')[0]}/optimized_{filename.split('.')[0]}.{filename.split('.')[1]}.gpp_run"
-    #     # print(f"executable: {executable}")
-
     pkl_path = os.path.join(os.path.dirname(__file__), f"../../energy/{language}/benchmark_data.pkl")
     # print(f"This is the pkl file path: {pkl_path}")
     
     #create a benchmark object
     bmark = Benchmark(language, name, filename, benchmark_data)
     
-    if optim_iter == 0:
-        results_file = bmark.run(optim_iter)
-        bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
     #run benchmark
     results_file = bmark.run(optim_iter)
     bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
