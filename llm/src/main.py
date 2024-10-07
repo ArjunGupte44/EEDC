@@ -16,8 +16,8 @@ def master_script(optim_iter):
     for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
         
         # Temporary to only run on binarytrees
-        # if filename != "binarytrees.gpp-9.c++":
-        #     continue
+        if filename != "binarytrees.gpp-9.c++":
+            continue
         # if filename != "chameneosredux.gpp-5.c++":
         #     continue
         # if filename != "fannkuchredux.gpp-5.c++":
@@ -28,8 +28,8 @@ def master_script(optim_iter):
         #     continue
         # if filename != "pidigits.gpp-4.c++":
         #     continue
-        if filename != "spectralnorm.gpp-6.c++":
-            continue
+        # if filename != "spectralnorm.gpp-6.c++":
+        #     continue
             
         print(f"Optimizing {filename}, longest step")
         if llm_optimize(filename, optim_iter) != 0:
@@ -89,6 +89,7 @@ def master_script(optim_iter):
 
 if __name__ == "__main__":
 
+    #preload original code and data to the pkl file
     # #run for 5 iterations
     for optim_iter in range(0, 5):
         print(f"Optimized iteration {optim_iter}")

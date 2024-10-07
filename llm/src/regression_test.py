@@ -105,8 +105,8 @@ def compare_outputs(file1, file2, output_log):
             return True
         else:
             output_log.write("Outputs are different.\n")
-            output_log.write(f"program output:\n{file1_content}\n")
-            output_log.write(f"optimized program output:\n{file2_content}\n\n")
+            output_log.write(f"Original program output:\n{file1_content}\n")
+            output_log.write(f"Optimized program output:\n{file2_content}\n\n")
             return False
 
 def regression_test(unoptimized_file_path, optimized_file_path, folder_name):

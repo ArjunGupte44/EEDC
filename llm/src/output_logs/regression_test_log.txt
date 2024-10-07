@@ -1,12 +1,12 @@
-make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
-/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2 spectralnorm.gpp-6.c++ -o spectralnorm.gpp-6.c++.o &&  /usr/bin/g++ spectralnorm.gpp-6.c++.o -o spectralnorm.gpp-6.gpp_run -fopenmp
-make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
-make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
-/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2 optimized_spectralnorm.gpp-6.c++ -o optimized_spectralnorm.gpp-6.c++.o &&  /usr/bin/g++ optimized_spectralnorm.gpp-6.c++.o -o optimized_spectralnorm.gpp-6.gpp_run -fopenmp
-make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
+make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
+/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -fopenmp -I/usr/include/apr-1.0 binarytrees.gpp-9.c++ -o binarytrees.gpp-9.c++.o &&  /usr/bin/g++ binarytrees.gpp-9.c++.o -o binarytrees.gpp-9.gpp_run -fopenmp -lapr-1 
+make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
+make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
+/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -fopenmp -I/usr/include/apr-1.0 optimized_binarytrees.gpp-9.c++ -o optimized_binarytrees.gpp-9.c++.o &&  /usr/bin/g++ optimized_binarytrees.gpp-9.c++.o -o optimized_binarytrees.gpp-9.gpp_run -fopenmp -lapr-1 
+make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
 Outputs are different.
-program output:
-['1.274224153']
-optimized program output:
-['-nan']
+Original program output:
+['stretch tree of depth 22\t check: 8388607\n', '2097152\t trees of depth 4\t check: 65011712\n', '524288\t trees of depth 6\t check: 66584576\n', '131072\t trees of depth 8\t check: 66977792\n', '32768\t trees of depth 10\t check: 67076096\n', '8192\t trees of depth 12\t check: 67100672\n', '2048\t trees of depth 14\t check: 67106816\n', '512\t trees of depth 16\t check: 67108352\n', '128\t trees of depth 18\t check: 67108736\n', '32\t trees of depth 20\t check: 67108832\n', 'long lived tree of depth 21\t check: 4194303']
+Optimized program output:
+['stretch tree of depth 22\tcheck: 4194303\n', '32768\t trees of depth 10\t check: 33521664\n', '2097152\t trees of depth 4\t check: 31457280\n', '2048\t trees of depth 14\t check: 33552384\n', '131072\t trees of depth 8\t check: 33423360\n', '524288\t trees of depth 6\t check: 33030144\n', '8192\t trees of depth 12\t check: 33546240\n', '512\t trees of depth 16\t check: 33553920\n', '128\t trees of depth 18\t check: 33554304\n', '32\t trees of depth 20\t check: 33554400\n', 'long lived tree of depth 21\t check: 2097151']
 

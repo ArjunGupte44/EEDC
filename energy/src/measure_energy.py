@@ -115,6 +115,13 @@ def get_evaluator_feedback(filename, optim_iter):
     bmark = Benchmark(language, name, filename, benchmark_data)
     
     #run benchmark
+    #load the original code and data into pkl file 
+    if optim_iter == 0:
+        results_file = bmark.run(optim_iter)
+        bmark.process_results(results_file, optim_iter, original_code_path)
+
+    #load the optimized code and data
+    optim_iter = optim_iter + 1 # offset
     results_file = bmark.run(optim_iter)
     bmark.process_results(results_file, optim_iter, original_code_path if optim_iter == 0 else optimized_code_path)
 
