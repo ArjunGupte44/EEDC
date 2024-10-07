@@ -78,6 +78,7 @@ def master_script(optim_iter):
         
         print(f"{optim_iter}: passing code to measure energy and get evaluator feedback")
         get_evaluator_feedback(filename, optim_iter)
+        return
 
 
 if __name__ == "__main__":

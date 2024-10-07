@@ -51,6 +51,8 @@ def run_program(exec_path, output_file):
     
     # Check for errors
     if result.returncode != 0:
+        with open(output_file, 'w+') as f:
+            f.write(result.stderr)
         print(f"Runtime error on {exec_path} with error message: {result.stderr}")
         return False
 
@@ -67,7 +69,7 @@ def run_program(exec_path, output_file):
     return True
 
 def run_program_optimized(exec_path, output_file):
-
+    os.chdir(f"/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees")    
     # This run optimized
     print(f"\nregression_test(run_program): Running optimized {exec_path}\n")
     
@@ -76,6 +78,8 @@ def run_program_optimized(exec_path, output_file):
     
     # Check for errors
     if result.returncode != 0:
+        with open(output_file, 'w+') as f:
+            f.write(result.stderr)
         print(f"Runtime error on {exec_path} with error message: {result.stderr}")
         return False
 
@@ -142,6 +146,6 @@ def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
             return 1
 
 if __name__ == "__main__":
-
+    run_program_optimized("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees/optimized_binarytrees.gpp-9.c++", "/home/jimmy/VIP_PTM/EEDC/llm/src/output_logs/optimized_output.txt")
     #input to regresstion thest should be path to optimized and original code
-    regression_test("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/chameneosredux.gpp-5.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/optimized_chameneosredux.gpp-5.c++", "chameneosredux")
+    # regression_test("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/chameneosredux.gpp-5.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/optimized_chameneosredux.gpp-5.c++", "chameneosredux")
