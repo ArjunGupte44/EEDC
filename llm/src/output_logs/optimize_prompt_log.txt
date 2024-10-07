@@ -40,136 +40,196 @@ You are tasked with optimizing the following code for energy efficiency, specifi
 
                 Here is the actual code to be optimized: 
                  #include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <apr_pools.h>
 #include <vector>
-#include <tuple>
-#include <algorithm>
-#include <memory> // For smart pointers and memory pools
+#include <cstring> // for memset
 #include <omp.h>
 
-struct Node {
-    Node* left, * right;
-    Node() : left(nullptr), right(nullptr) {}
-    int check() const {
-        int leftCheck = left ? left->check() : 0;
-        int rightCheck = right ? right->check() : 0;
-        return leftCheck + 1 + rightCheck;
+const size_t LINE_SIZE = 64;
+
+class Apr
+{
+public:
+    Apr() 
+    {
+        apr_initialize();
+    }
+
+    ~Apr() 
+    {
+        apr_terminate();
     }
 };
 
-class NodePool {
+struct Node 
+{
+    Node *l, *r;
+    
+    int check() const 
+    {
+        if (l)
+            return l->check() + 1 + r->check();
+        else return 1;
+    }
+};
+
+class NodePool
+{
 public:
-    static constexpr size_t PoolSize = 1024;
-
-    NodePool() : pool_index(0) {
-        pool.reserve(PoolSize);
+    NodePool() 
+    {
+        apr_pool_create_unmanaged(&pool);
     }
 
-    Node* allocate() {
-        if (pool_index < pool.size())
-            return &pool[pool_index++];
-        // Allocate a new block of nodes
-        pool.resize(pool.size() + PoolSize);
-        return &pool[pool_index++];
+    ~NodePool() 
+    {
+        apr_pool_destroy(pool);
     }
 
-    void reset() { pool_index = 0; }
+    Node* alloc()
+    {
+        return (Node *)apr_palloc(pool, sizeof(Node));
+    }
+
+    void clear()
+    {
+        apr_pool_clear(pool);
+    }
 
 private:
-    std::vector<Node> pool;
-    size_t pool_index;
+    apr_pool_t* pool;
 };
 
-Node* recursive_make(int depth, NodePool& pool) {
-    Node* node = pool.allocate();
-    if (depth <= 0) return node;
-    node->left = recursive_make(depth - 1, pool);
-    node->right = recursive_make(depth - 1, pool);
-    return node;
+Node *make(int d, NodePool &store)
+{
+    Node* root = store.alloc();
+
+    if(d>0){
+        root->l=make(d-1, store);
+        root->r=make(d-1, store);
+    }else{
+        root->l=root->r=0;
+    }
+
+    return root;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) 
+{
+    Apr apr;
     int min_depth = 4;
-    int max_depth = (argc == 2) ? std::max(min_depth + 2, atoi(argv[1])) : 10;
-    int stretch_depth = max_depth + 1;
+    int max_depth = std::max(min_depth+2,
+                             (argc == 2 ? atoi(argv[1]) : 10));
+    int stretch_depth = max_depth+1;
 
-    NodePool pool;
+    // Alloc then dealloc stretch depth tree
+    {
+        NodePool store;
+        Node *c = make(stretch_depth, store);
+        std::cout << "stretch tree of depth " << stretch_depth << "\t "
+                  << "check: " << c->check() << std::endl;
+    }
 
-    // Stretch tree creation and check
-    Node* stretch_tree = recursive_make(stretch_depth, pool);
-    std::cout << "stretch tree of depth " << stretch_depth << "\t check: " << stretch_tree->check() << std::endl;
+    NodePool long_lived_store;
+    Node *long_lived_tree = make(max_depth, long_lived_store);
 
-    // Long-lived tree creation
-    pool.reset();
-    Node* long_lived_tree = recursive_make(max_depth, pool);
+    // buffer to store output of each thread
+    std::vector<std::string> outputstrs(max_depth/2 + 1);
 
-    std::vector<std::tuple<int, int, int>> results;
-    results.reserve((max_depth - min_depth) / 2 + 1);
+    #pragma omp parallel for 
+    for (int d = min_depth; d <= max_depth; d += 2) 
+    {
+        int iterations = 1 << (max_depth - d + min_depth);
+        int c = 0;
 
-    // Optimize parallel calculation for tree depths
-    #pragma omp parallel for schedule(dynamic, 1)
-    for (int depth = min_depth; depth <= max_depth; depth += 2) {
-        int iterations = 1 << (max_depth - depth + min_depth);
-        int check_sum = 0;
-        NodePool local_pool;
+        // Create a memory pool for this thread to use.
+        NodePool store;
 
-        for (int i = 0; i < iterations; ++i) {
-            Node* temp_tree = recursive_make(depth, local_pool);
-            check_sum += temp_tree->check();
-            local_pool.reset();
-        }
-
-        #pragma omp critical
+        for (int i = 1; i <= iterations; ++i) 
         {
-            results.push_back(std::make_tuple(iterations, depth, check_sum));
+            Node *a = make(d, store);
+            c += a->check();
+            store.clear();
         }
+
+        // use a thread-private storage
+        char buffer[LINE_SIZE];
+        snprintf(buffer, LINE_SIZE, "%d\t trees of depth %d\t check: %d\n",
+           iterations, d, c);
+        outputstrs[(d-min_depth)/2] = buffer;
     }
 
-    // Already sorted by depth, no need to sort
+    // print all results
+    for (const auto& result : outputstrs) 
+        printf("%s", result.c_str());
 
-    // Print results
-    for (const auto& result : results) {
-        printf("%d\t trees of depth %d\t check: %d\n", std::get<0>(result), std::get<1>(result), std::get<2>(result));
-    }
-
-    std::cout << "long lived tree of depth " << max_depth << "\t check: " << long_lived_tree->check() << "\n";
+    std::cout << "long lived tree of depth " << max_depth << "\t "
+              << "check: " << (long_lived_tree->check()) << "\n";
 
     return 0;
-}The current code snippet attempts to optimize the generation of binary trees of varying depths and perform operations on them using memory pools to manage memory allocation efficiently. It uses OpenMP for parallelizing the tree creation and checking process. Let's analyze the code step-by-step:
+}
+Let's break down the current code and examine opportunities for optimization with respect to time complexity, space complexity, readability, and energy usage.
 
-### Code Analysis
+### Analysis of How the Code Works
 
-1. **Functionality**:
-   - The code creates and checks the integrity of binary trees of specific depths using a node pool to manage memory.
-   - It uses OpenMP to parallelize the computations for different depths of trees.
-   - The `Node` class represents the nodes of a binary tree, and `NodePool` manages the allocation of `Node` objects to optimize memory use.
+1. **Initialization and Setup:** 
+   - `Apr` encapsulates the initialization and termination of the APR (Apache Portable Runtime), which manages memory pools.
+   - `Node` is a structure for binary tree nodes with a method `check()` that traverses the tree.
 
-2. **Current Strengths**:
-   - **Memory Management**: The use of a customizable node pool reduces the need for frequent dynamic allocations. This can improve both speed and energy efficiency by lowering memory fragmentation and allocation overhead.
-   - **Parallelism**: The use of OpenMP allows parallel processing of tree creation and checks, significantly improving execution time for multiple depths.
+2. **NodePool Class:**
+   - Manages memory for `Node` objects using APR unmanaged pools. Nodes are allocated and deallocated via this pool.
 
-3. **Potential Inefficiencies or Bottlenecks**:
-   - **NodePool Resize**: If the number of requested nodes exceeds the initial reserve, resizing the vector will cause reallocation, which can be expensive in terms of time and energy. If this happens frequently, it could negate the benefits of using a pool.
-   - **Parallel Critical Section**: The use of `#pragma omp critical` may create contention if multiple threads frequently attempt to write results simultaneously. This can become a bottleneck, limiting the scalability of the parallel processing.
-   - **Argument Parsing and Initial State**: The usage of `atoi` for parsing arguments can be improved by using safer and more sustainable parsing techniques at scale, but the impact on energy and performance is minimal.
+3. **Recursive Tree Construction:**
+   - The `make()` function recursively creates a binary tree of a specified depth using the `NodePool` for memory management.
+
+4. **Main Functionality:**
+   - A "stretch" tree is created and its check value is printed.
+   - A long-lived tree (maximum depth) is constructed and its check value is reported.
+   - Parallel processing is utilized to create and check several trees of varying depths, storing results in a character buffer.
+
+### Inefficiencies or Bottlenecks
+
+1. **Time Complexity:**
+   - Recursive depth-first tree creation (`make()`), with depth \(d\), is \(O(2^d)\). Although unavoidable for complete binary trees, this can be costly for deep trees.
+   - The `check()` method also has a complexity of \(O(n)\), where \(n\) is the number of nodes.
+
+2. **Space Complexity:**
+   - Memory allocation for each node using `apr_pool` can be wasteful if not effectively managed.
+   - The character buffer `outputstr` pre-allocates space linearly based on tree depth, which may lead to space wastage for unused buffer slots.
+
+3. **Readability:**
+   - Direct memory manipulation via APR pools and C-style string handling (`sprintf`) may be less readable and error-prone than modern abstractions.
+
+4. **Energy Usage and Performance:**
+   - Recursive calls without optimization can lead to stack overflow risks and increased energy due to deeper recursion depths.
+   - Synchronization overhead due to parallel sections managing independent memory pools.
 
 ### Suggestions for Improvement
 
-1. **Preallocation**: Increase the preallocated size of the node pool or dynamically adjust it based on expected depth to minimize resizing during node allocations. This can help keep memory allocation efforts stable and efficient.
-   
-2. **Reduce Critical Section Dependency**:
-   - Consider alternative data structures for storing results that minimize or eliminate the use of critical sections. For example, use `omp atomic` or a thread-specific storage like local vectors that are merged post-parallel execution.
-   
-3. **Energy-Efficient Data Handling**:
-   - Investigate more energy-efficient parallel algorithms. Ensure maximum use of cache lines (localized memory access) and minimize the power required by maintaining cache coherence.
-   
-4. **Alternate Parallelization Strategies**:
-   - Use various other scheduling strategies (`static`, `guided`) in OpenMP to explore energy efficiency and runtime variations.
-   - Optimize reduction operations if they appear in computation (not apparent in the snippet but could be considered for similar algorithms).
+1. **Algorithm and Data Structure Enhancements:**
+   - Consider iterative tree creation methods to mitigate recursion depth issues.
+   - Use more compact data structures when feasible (e.g., packed representations) to reduce memory footprint and data access costs.
 
-5. **Compile-Time Optimizations**:
-   - Ensure that compiler optimizations (e.g., vectorization and inlining) are fully utilized. Compiler directive exploration can yield additional performance benefits.
+2. **Memory Management and Pool Optimization:**
+   - Consolidate memory allocation for nodes if possible to reduce pressure on the memory pool—this might mean sharing pools or larger block allocs.
+   - Explore slab allocators or other memory pool configurations that can better manage fragmented allocations in concurrent environments.
 
-6. **Benchmarking**:
-   - Conduct targeted profiling to identify other potential hotspots or wasted cycles in the code which aren't immediately obvious from a plain code reading.
+3. **Improving Parallelization:**
+   - Reduce synchronization and thread overhead by exploring task-based parallelism rather than creating new pools in each parallel loop.
+   - Use modern C++ mechanisms, such as `std::async` or thread pools offered by the Standard Library, which can lead to better energy performance due to optimizations in runtime library.
 
-By focusing on memory allocation strategies and reducing concurrent write conflicts, you can further optimize the code to yield better energy and performance outcomes. This requires a balance between data locality, thread management, and efficient use of system resources.
+4. **Code Readability and Maintainability:**
+   - Replace `sprintf` with safer alternatives like `snprintf` or C++ stream-based formatting to avoid buffer overflows.
+   - Use smart pointers or other RAII principles to manage resource lifecycles more effectively.
+
+### Steps for Optimization with Examples:
+
+1. **Iterative Tree Building:** Instead of using simple recursion, implement iterative approaches using explicit data structures like stacks to minimize stack consumption and potentially improve cache locality.
+
+2. **Energy Usage Considerations:** Reduce energy by minimizing allocations and deallocations, which are costly. Reuse data structures or employ techniques like memory compaction in custom allocator logic for the NodePool class.
+
+3. **Use Standard Libraries for IO and Parallelism:** Transition to C++11 or newer paradigms for memory management, parallelism (using `std::thread`, `std::mutex`), and safe I/O handling to leverage compiler and runtime optimizations.
+
+These strategies should significantly reduce runtime and energy consumption, making the code more efficient while maintaining or improving readability.

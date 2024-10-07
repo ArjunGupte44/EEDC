@@ -1,1 +1,1 @@
-make: *** [Makefile:26: run_optimized] Segmentation fault (core dumped)
+make[1]: *** [Makefile:26: run_optimized] Segmentation fault (core dumped)

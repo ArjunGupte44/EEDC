@@ -30,7 +30,7 @@ int main (int argc, char **argv)
   //Language name
   const char *home = getenv("HOME");
   strcpy(path, home);
-  strcat(path,"/EEDC/energy/src/");
+  strcat(path,"VIP_PTM/EEDC/energy/src/");
   // strcpy(path, "/home/leoDeng/EEDC/energy/src/");
 
   strcpy(language,argv[2]);
