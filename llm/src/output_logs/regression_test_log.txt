@@ -1,13 +1,12 @@
-make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
-/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -fopenmp -I/usr/include/apr-1.0 binarytrees.gpp-9.c++ -o binarytrees.gpp-9.c++.o &&  /usr/bin/g++ binarytrees.gpp-9.c++.o -o binarytrees.gpp-9.gpp_run -fopenmp -lapr-1 
-make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
-make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
-/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -fopenmp -I/usr/include/apr-1.0 optimized_binarytrees.gpp-9.c++ -o optimized_binarytrees.gpp-9.c++.o &&  /usr/bin/g++ optimized_binarytrees.gpp-9.c++.o -o optimized_binarytrees.gpp-9.gpp_run -fopenmp -lapr-1 
-optimized_binarytrees.gpp-9.c++: In function ‘Node* make(int, NodePool&)’:
-optimized_binarytrees.gpp-9.c++:56:14: warning: structured bindings only available with ‘-std=c++17’ or ‘-std=gnu++17’
-   56 |         auto [node, d] = queue.front();
-      |              ^
-make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
-Outputs are the same.
-Regression test successful. Outputs are the same.
+make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
+/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2 spectralnorm.gpp-6.c++ -o spectralnorm.gpp-6.c++.o &&  /usr/bin/g++ spectralnorm.gpp-6.c++.o -o spectralnorm.gpp-6.gpp_run -fopenmp
+make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
+make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
+/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2 optimized_spectralnorm.gpp-6.c++ -o optimized_spectralnorm.gpp-6.c++.o &&  /usr/bin/g++ optimized_spectralnorm.gpp-6.c++.o -o optimized_spectralnorm.gpp-6.gpp_run -fopenmp
+make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/spectralnorm'
+Outputs are different.
+program output:
+['1.274224153']
+optimized program output:
+['-nan']
 

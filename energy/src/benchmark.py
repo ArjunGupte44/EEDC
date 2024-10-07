@@ -27,6 +27,7 @@ class Benchmark():
         #run make measure using make file
         #change current directory to benchmarks/folder to run make file
         os.chdir(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{self.benchmark_name}")
+        print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{self.benchmark_name}")
         current_dir = os.getcwd()
         print(f"Current directory: {current_dir}")
 

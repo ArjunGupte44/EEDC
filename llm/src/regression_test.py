@@ -69,7 +69,7 @@ def run_program(exec_path, output_file):
     return True
 
 def run_program_optimized(exec_path, output_file):
-    os.chdir(f"/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees")    
+    # os.chdir(f"/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/fannkuchredux")    
     # This run optimized
     print(f"\nregression_test(run_program): Running optimized {exec_path}\n")
     
@@ -89,6 +89,7 @@ def run_program_optimized(exec_path, output_file):
         if not (line.startswith("make[") or line.startswith("./"))
     )
     
+    # print(filtered_output)
     # Write the filtered output to the file
     with open(output_file, 'w+') as f:
         f.write(filtered_output)
@@ -104,11 +105,10 @@ def compare_outputs(file1, file2, output_log):
             return True
         else:
             output_log.write("Outputs are different.\n")
-            output_log.write(f"binarytrees output:\n{file1_content}\n")
-            output_log.write(f"optimized_binarytrees output:\n{file2_content}\n\n")
+            output_log.write(f"program output:\n{file1_content}\n")
+            output_log.write(f"optimized program output:\n{file2_content}\n\n")
             return False
 
-# Only for binarytrees
 def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
     output_different = False
     print(f"\nregression_test unoptimized_file_path: {unoptimized_file_path}")
@@ -146,6 +146,6 @@ def regression_test(unoptimized_file_path, optimized_file_path, folder_name):
             return 1
 
 if __name__ == "__main__":
-    run_program_optimized("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees/optimized_binarytrees.gpp-9.c++", "/home/jimmy/VIP_PTM/EEDC/llm/src/output_logs/optimized_output.txt")
+    run_program_optimized("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/fannkuchredux/optimized_fannkuchredux.gpp-5.c++", "/home/jimmy/VIP_PTM/EEDC/llm/src/output_logs/optimized_output.txt")
     #input to regresstion thest should be path to optimized and original code
     # regression_test("/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/chameneosredux.gpp-5.c++", "/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/chameneosredux/optimized_chameneosredux.gpp-5.c++", "chameneosredux")

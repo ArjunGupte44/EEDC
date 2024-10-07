@@ -16,15 +16,20 @@ def master_script(optim_iter):
     for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
         
         # Temporary to only run on binarytrees
-        if filename != "binarytrees.gpp-9.c++":
-            continue
+        # if filename != "binarytrees.gpp-9.c++":
+        #     continue
         # if filename != "chameneosredux.gpp-5.c++":
         #     continue
         # if filename != "fannkuchredux.gpp-5.c++":
         #     continue
         # if filename != "knucleotide.gpp-3.c++":
         #     continue
-
+        # if filename != "nbody.gpp-8.c++":
+        #     continue
+        # if filename != "pidigits.gpp-4.c++":
+        #     continue
+        if filename != "spectralnorm.gpp-6.c++":
+            continue
             
         print(f"Optimizing {filename}, longest step")
         if llm_optimize(filename, optim_iter) != 0:
@@ -84,7 +89,7 @@ def master_script(optim_iter):
 
 if __name__ == "__main__":
 
-    #run for 5 iterations
+    # #run for 5 iterations
     for optim_iter in range(0, 5):
         print(f"Optimized iteration {optim_iter}")
         master_script(optim_iter)
@@ -98,3 +103,16 @@ if __name__ == "__main__":
     dict_str = json.dumps(contents, indent=4)
     with open("result_file.txt", "w+") as file:
         file.write(str(dict_str))
+
+
+    #delete evaluator feedback
+    file_path = f"{USER_PREFIX}/EEDC/energy/src/evaluator_feedback.txt"
+    try:
+        # Check if file exists
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            print(f"{file_path} has been removed successfully.")
+        else:
+            print(f"{file_path} does not exist.")
+    except Exception as e:
+        print(f"An error occurred while trying to remove the file: {e}")

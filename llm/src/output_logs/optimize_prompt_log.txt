@@ -39,156 +39,138 @@ You are tasked with optimizing the following code for energy efficiency, specifi
                 ```
 
                 Here is the actual code to be optimized: 
-                 #include <iostream>
-#include <vector>
-#include <string>
+                 // The Computer Language Benchmarks Game
+// http://benchmarksgame.alioth.debian.org/
+//
+// Original C contributed by Sebastien Loisel
+// Conversion to C++ by Jon Harrop
+// OpenMP parallelize by The Anh Tran
+// Add SSE by The Anh Tran
+// Additional SSE optimization by Krzysztof Jakubowski
+
+// g++ -pipe -O3 -march=native -fopenmp -mfpmath=sse -msse2 \
+//     ./spec.c++ -o ./spec.run
+
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <sched.h>
 #include <omp.h>
-#include <sstream>
+#include <emmintrin.h>
 
-class Node {
-public:
-    Node *l, *r;
-
-    Node() : l(nullptr), r(nullptr) {}
-
-    int check() const {
-        int count = 0;
-        std::vector<const Node*> stack;
-        stack.push_back(this);
-        while (!stack.empty()) {
-            const Node* current = stack.back();
-            stack.pop_back();
-            ++count;
-            if (current->l) stack.push_back(current->l);
-            if (current->r) stack.push_back(current->r);
-        }
-        return count;
-    }
-};
-
-class NodePool {
-public:
-    std::vector<Node> pool;
-    size_t index;
-
-    NodePool(size_t capacity) : pool(capacity), index(0) {}
-
-    Node* alloc() {
-        if (index < pool.size()) {
-            return &pool[index++];
-        }
-        return nullptr;
-    }
-
-    void clear() {
-        index = 0;
-    }
-};
-
-Node* make(int depth, NodePool& store) {
-    if (depth <= 0) return nullptr;
-    Node* root = store.alloc();
-    if (!root) return nullptr;
-    
-    std::vector<std::pair<Node*, int>> stack;
-    stack.emplace_back(root, depth);
-
-    while (!stack.empty()) {
-        auto [node, d] = stack.back();
-        stack.pop_back();
-
-        if (d > 0) {
-            node->l = store.alloc();
-            node->r = store.alloc();
-
-            if (node->r) stack.emplace_back(node->r, d - 1);
-            if (node->l) stack.emplace_back(node->l, d - 1);
-        }
-    }
-    return root;
+template <bool modei> int Index(int i, int j) {
+    return (((i + j) * (i + j + 1)) >> 1) + (modei? i : j) + 1;
 }
 
-int main(int argc, char* argv[]) 
-{
-    int min_depth = 4;
-    int max_depth = std::max(min_depth + 2, (argc == 2 ? std::atoi(argv[1]) : 10));
+template <bool modei>
+void EvalPart(double *__restrict__ src, double *__restrict__ dst,
+                int begin, int end, int length) {
+    int i = begin;
 
-    {
-        NodePool stretch_pool(1 << (max_depth + 2));
-        Node* stretch_tree = make(max_depth + 1, stretch_pool);
-        std::cout << "stretch tree of depth " << (max_depth + 1) << "\t check: " 
-                  << (stretch_tree ? stretch_tree->check() : 0) << std::endl;
-    }
+    for(; i + 1 < end; i += 2) {
+        __m128d sum = _mm_set_pd(
+			src[0] / double(Index<modei>(i + 1, 0)),
+			src[0] / double(Index<modei>(i + 0, 0)));
+    
+		__m128d ti = modei?
+			_mm_set_pd(i + 1, i + 0) :
+			_mm_set_pd(i + 2, i + 1);	
+		__m128d last = _mm_set_pd(
+			Index<modei>(i + 1, 0),
+			Index<modei>(i + 0, 0));
 
-    std::vector<std::string> outputs((max_depth / 2) + 1);
-    NodePool long_lived_store(1 << (max_depth + 1));
-    Node *long_lived_tree = make(max_depth, long_lived_store);
-
-    for (int d = min_depth; d <= max_depth; d += 2) {
-        int iterations = 1 << (max_depth - d + min_depth);
-        int total_check = 0;
-
-        #pragma omp parallel reduction(+:total_check)
-        {
-            NodePool store(1 << (d + 1));
-            #pragma omp for schedule(static)
-            for (int i = 0; i < iterations; ++i) {
-                Node *a = make(d, store);
-                if (a) total_check += a->check();
-                store.clear();
-            }
+        for(int j = 1; j < length; j++) {
+			__m128d idx = last + ti + _mm_set1_pd(j);
+			last = idx;
+            sum = sum + _mm_set1_pd(src[j]) / idx;
         }
 
-        std::ostringstream oss;
-        oss << iterations << "\t trees of depth " << d << "\t check: " << total_check << '\n';
-        outputs[(d - min_depth) / 2] = oss.str();
+        _mm_storeu_pd(dst + i + 0, sum);
+    }
+    for(; i < end; i++) {
+        double sum = 0;
+        for (int j = 0; j < length; j++)
+            sum += src[j] / double(Index<modei>(i, j));
+        dst[i] = sum;
     }
 
-    for (const auto& output : outputs)
-        std::cout << output;
+}
 
-    std::cout << "long lived tree of depth " << max_depth << "\t " 
-              << "check: " << (long_lived_tree ? long_lived_tree->check() : 0) << std::endl;
+void EvalATimesU(double *src, double *dst, int begin, int end, int N) {
+    EvalPart<1>(src, dst, begin, end, N);
+}
 
+void EvalAtTimesU(double *src, double *dst, int begin, int end, int N) {
+    EvalPart<0>(src, dst, begin, end, N);
+}
+
+void EvalAtATimesU(double *src, double *dst, double *tmp,
+                   int begin, int end, int N) {
+    EvalATimesU (src, tmp, begin, end, N);
+    #pragma omp barrier
+    EvalAtTimesU(tmp, dst, begin, end, N);
+    #pragma omp barrier
+}
+
+int GetThreadCount() {
+    cpu_set_t cs;
+    CPU_ZERO(&cs);
+    sched_getaffinity(0, sizeof(cs), &cs);
+
+    int count = 0;
+    for (int i = 0; i < CPU_SETSIZE; ++i)
+        if (CPU_ISSET(i, &cs))
+            ++count;
+
+    return count;
+}
+
+double spectral_game(int N) {
+    __attribute__((aligned(16))) double u[N];
+    __attribute__((aligned(16))) double v[N], tmp[N];
+
+    double vBv = 0.0;
+    double vv = 0.0;
+
+    #pragma omp parallel default(shared) num_threads(GetThreadCount())
+    {
+        // this block will be executed by NUM_THREADS
+        // variable declared in this block is private for each thread
+        int threadid = omp_get_thread_num();
+        int threadcount = omp_get_num_threads();
+        int chunk = N / threadcount;
+
+        // calculate each thread's working range [r1 .. r2) => static schedule
+        int begin = threadid * chunk;
+        int end = (threadid < (threadcount -1)) ? (begin + chunk) : N;
+
+        for(int i = begin; i < end; i++)
+            u[i] = 1.0;
+        #pragma omp barrier
+
+        for (int ite = 0; ite < 10; ++ite) {
+            EvalAtATimesU(u, v, tmp, begin, end, N);
+            EvalAtATimesU(v, u, tmp, begin, end, N);
+        }
+    
+        double sumvb = 0.0, sumvv = 0.0;
+        for (int i = begin; i < end; i++) {
+            sumvv += v[i] * v[i];
+            sumvb += u[i] * v[i];
+        }
+
+        #pragma omp critical
+        {
+            vBv += sumvb;
+            vv += sumvv;
+        }
+    }
+
+    return sqrt(vBv / vv);
+}
+
+int main(int argc, char *argv[]) {
+    int N = ((argc >= 2) ? atoi(argv[1]) : 2000);
+    printf("%.9f\n", spectral_game(N));
     return 0;
-}Certainly! Let's go through a detailed analysis and provide suggestions for optimizations to improve the performance, particularly focusing on energy usage and runtime.
-
-### 1. Code Analysis
-The current code snippet constructs binary trees of varying depths, computes some checks, and then prints the results. The operations include:
-- Making a "stretch" binary tree for depth `max_depth + 1` and checking it.
-- Constructing multiple binary trees in parallel with OpenMP, calculating their checks, and accumulating the results.
-- Constructing a "long-lived" tree and checking it.
-
-### 2. Inefficiencies and Bottlenecks
-#### Time Complexity
-- **Recursive Tree Construction:** The function `make` constructs trees recursively and repeatedly allocates nodes, which can be inefficient for larger depths due to the recursive stack overhead.
-- **Check Method:** The `check` method uses iterative depth-first traversal, which is more efficient than recursion, but still involves multiple node checks.
-
-#### Space Complexity
-- **Node Allocation:** The `NodePool` and its `pool` vector manage allocations. Allocating upfront can be wasteful if many nodes are not used. 
-- **Output Storage:** The outputs for different depth trees are stored in a vector, which is generally fine, but could be improved for sequential access efficiency.
-
-#### Readability
-- The use of both recursion and iterations can lead to complexity in understanding the flow of data and control through the program. Consistent use of one pattern could help.
-- The conditional constructs and OpenMP pragmas might be non-trivial to readers unfamiliar with parallel processing frameworks.
-
-### 3. Suggestions for Improvement
-#### Algorithm and Data Structure Improvements
-- **Non-recursive Tree Construction:** Converting the `make` function to iterative construction fully could eliminate recursion overhead.
-- **Use Dynamic Memory Wisely:** Rather than preallocating large vectors in `NodePool`, consider alternatives like growing the vector or using linked data structures that grow as needed.
-- **Efficient Containers:** If operations allow, consider using memory pools or allocators which are tuned for frequent allocations and deallocations to minimize fragmentation.
-
-#### Performance Enhancement Strategies
-- **Optimize Parallel Processing:** Ensure that the workshop on each thread is well-optimized for cache usage and that load balancing is efficient. Experience with OpenMP scheduling can help to reduce synchronization overhead.
-- **Reduce Memory Usage:** Minimize unnecessary copies and buffer usage. Consider in-place operations or segmented buffers if robust memory usage analysis highlights excessive consumption.
-- **Energy-efficient Algorithms:** Balancing between computation and energy usage often means ensuring that the algorithm isn't over-optimizing one at the cost of the other. Profile to figure out where most time/energy is spent.
-
-#### Example Conceptual Optimizations
-- **Reduce Memory Allocation Overheads:** If APR routines are adding too much overhead, consider customized or simplified memory management strategies that are tailor-fitted to the application’s needs rather than generic.
-- **Profile and Monitor:** Make use of profiling tools to identify hot spots specifically related to energy and time, then iteratively address them.
-
-### 4. Energy Usage Focused Changes
-- **Core Utilization Monitoring:** Ensure that OpenMP cores are effectively utilized to balance computation with power draw, as inefficient parallelism can lead to higher energy drain.
-- **Optimize Computational Workload:** Assess the computational workload per node operation and refine it, cutting out unnecessary ones, such as redundant checks or data processing steps that don’t influence the output significantly.
-
-By focusing on these adjustments, you should see improvements in both energy usage and runtime efficiency. Remember to conduct thorough testing after making optimizations to ensure correctness and expected performance gains.
+}
