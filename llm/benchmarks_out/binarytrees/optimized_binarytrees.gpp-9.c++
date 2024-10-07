@@ -1,99 +1,111 @@
 #include <iostream>
 #include <vector>
-#include <thread>
-#include <mutex>
-#include <cstring> // for memset
+#include <string>
+#include <omp.h>
+#include <sstream>
+#include <queue>
 
-const size_t LINE_SIZE = 64;
-
-struct Node 
-{
-    Node *l, *r;
-    int check() const 
-    {
-        if (l) return l->check() + 1 + r->check();
-        else return 1;
-    }
-};
-
-class OptimizedNodePool 
-{
+class Node {
 public:
-    Node* alloc()
-    {
-        nodes.emplace_back(Node());
-        return &nodes.back();
+    Node *l, *r;
+
+    Node() : l(nullptr), r(nullptr) {}
+
+    int check() const {
+        int count = 0;
+        std::vector<const Node*> stack;
+        stack.push_back(this);
+        while (!stack.empty()) {
+            const Node* current = stack.back();
+            stack.pop_back();
+            ++count;
+            if (current->l) stack.push_back(current->l);
+            if (current->r) stack.push_back(current->r);
+        }
+        return count;
     }
-    void clear() { nodes.clear(); }
-private:
-    std::vector<Node> nodes;
 };
 
-Node* make(int d, OptimizedNodePool &store)
-{
-    Node* root = store.alloc();
-    if(d>0)
-    {
-        root->l=make(d-1, store);
-        root->r=make(d-1, store);
+class NodePool {
+public:
+    std::vector<Node> pool;
+    size_t index;
+
+    NodePool(size_t capacity) : pool(capacity), index(0) {}
+
+    Node* alloc() {
+        if (index < pool.size()) {
+            return &pool[index++];
+        }
+        return nullptr;
     }
-    else
-    {
-        root->l=root->r=0;
+
+    void clear() {
+        index = 0;
+    }
+};
+
+Node* make(int depth, NodePool& store) {
+    if (depth <= 0) return nullptr;
+    std::queue<std::pair<Node*, int>> queue;
+    Node* root = store.alloc();
+    if (!root) return nullptr;
+    queue.push({root, depth});
+
+    while (!queue.empty()) {
+        auto [node, d] = queue.front();
+        queue.pop();
+        if (d > 0) {
+            node->l = store.alloc();
+            node->r = store.alloc();
+            if (node->l) queue.push({node->l, d - 1});
+            if (node->r) queue.push({node->r, d - 1});
+        }
     }
     return root;
 }
 
-void worker(int d, int iterations, std::vector<std::string> &outputstrs, int min_depth, std::mutex &mtx)
-{
-    int c = 0;
-    for (int i = 1; i <= iterations; ++i) 
-    {
-        OptimizedNodePool store;
-        Node *a = make(d, store);
-        c += a->check();
-        store.clear();
-    }
-    char buffer[LINE_SIZE];
-    snprintf(buffer, LINE_SIZE, "%d\t trees of depth %d\t check: %d\n", iterations, d, c);
-    std::lock_guard<std::mutex> lock(mtx);
-    outputstrs[(d-min_depth)/2] = buffer;
-}
-
-int main(int argc, char *argv[]) 
+int main(int argc, char* argv[]) 
 {
     int min_depth = 4;
-    int max_depth = std::max(min_depth+2, (argc == 2 ? atoi(argv[1]) : 10));
-    int stretch_depth = max_depth+1;
+    int max_depth = std::max(min_depth + 2, (argc == 2 ? std::atoi(argv[1]) : 10));
 
-    { // Inner block scope to automatically call destructors
-        OptimizedNodePool store;
-        Node *c = make(stretch_depth, store);
-        std::cout << "stretch tree of depth " << stretch_depth << "\t check: " << c->check() << std::endl;
+    {
+        NodePool stretch_pool(1 << (max_depth + 2));
+        Node* stretch_tree = make(max_depth + 1, stretch_pool);
+        std::cout << "stretch tree of depth " << (max_depth + 1) << "\t check: " 
+                  << (stretch_tree ? stretch_tree->check() : 0) << std::endl;
     }
 
-    OptimizedNodePool long_lived_store;
+    std::vector<std::string> outputs((max_depth / 2) + 1);
+    NodePool long_lived_store(1 << (max_depth + 1));
     Node *long_lived_tree = make(max_depth, long_lived_store);
 
-    std::vector<std::string> outputstrs(max_depth/2 + 1);
-    std::vector<std::thread> threads;
-    std::mutex mtx;
-
-    for (int d = min_depth; d <= max_depth; d += 2) 
-    {
+    for (int d = min_depth; d <= max_depth; d += 2) {
         int iterations = 1 << (max_depth - d + min_depth);
-        threads.emplace_back(worker, d, iterations, std::ref(outputstrs), min_depth, std::ref(mtx));
+        int total_check = 0;
+
+        #pragma omp parallel reduction(+:total_check)
+        {
+            NodePool store(1 << (d + 1));
+            #pragma omp for schedule(static)
+            for (int i = 0; i < iterations; ++i) {
+                Node *a = make(d, store);
+                if (a) total_check += a->check();
+                store.clear();
+            }
+        }
+
+        std::ostringstream oss;
+        oss << iterations << "\t trees of depth " << d << "\t check: " << total_check << '\n';
+        outputs[(d - min_depth) / 2] = oss.str();
     }
 
-    for(auto& thread : threads) {
-        thread.join();
-    }
+    for (const auto& output : outputs)
+        std::cout << output;
 
-    for (const auto& result : outputstrs) {
-        printf("%s", result.c_str());
-    }
-
-    std::cout << "long lived tree of depth " << max_depth << "\t check: " << (long_lived_tree->check()) << "\n";
+    std::cout << "long lived tree of depth " << max_depth << "\t " 
+              << "check: " << (long_lived_tree ? long_lived_tree->check() : 0) << std::endl;
 
     return 0;
 }

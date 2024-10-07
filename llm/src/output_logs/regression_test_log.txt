@@ -3,10 +3,11 @@ make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binaryt
 make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
 make[1]: Entering directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
 /usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -fopenmp -I/usr/include/apr-1.0 optimized_binarytrees.gpp-9.c++ -o optimized_binarytrees.gpp-9.c++.o &&  /usr/bin/g++ optimized_binarytrees.gpp-9.c++.o -o optimized_binarytrees.gpp-9.gpp_run -fopenmp -lapr-1 
+optimized_binarytrees.gpp-9.c++: In function ‘Node* make(int, NodePool&)’:
+optimized_binarytrees.gpp-9.c++:56:14: warning: structured bindings only available with ‘-std=c++17’ or ‘-std=gnu++17’
+   56 |         auto [node, d] = queue.front();
+      |              ^
 make[1]: Leaving directory '/home/jimmy/VIP_PTM/EEDC/llm/benchmarks_out/binarytrees'
-Outputs are different.
-binarytrees output:
-['stretch tree of depth 22\t check: 8388607\n', '2097152\t trees of depth 4\t check: 65011712\n', '524288\t trees of depth 6\t check: 66584576\n', '131072\t trees of depth 8\t check: 66977792\n', '32768\t trees of depth 10\t check: 67076096\n', '8192\t trees of depth 12\t check: 67100672\n', '2048\t trees of depth 14\t check: 67106816\n', '512\t trees of depth 16\t check: 67108352\n', '128\t trees of depth 18\t check: 67108736\n', '32\t trees of depth 20\t check: 67108832\n', 'long lived tree of depth 21\t check: 4194303']
-optimized_binarytrees output:
-['make[1]: *** [Makefile:26: run_optimized] Segmentation fault (core dumped)\n']
+Outputs are the same.
+Regression test successful. Outputs are the same.
 

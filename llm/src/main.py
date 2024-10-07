@@ -78,6 +78,7 @@ def master_script(optim_iter):
         
         print(f"{optim_iter}: passing code to measure energy and get evaluator feedback")
         get_evaluator_feedback(filename, optim_iter)
+        print("got evaluator feedback")
         return
 
 
@@ -90,7 +91,8 @@ if __name__ == "__main__":
 
     #write result
     print("EEDC Optimization Complete, writing results to file.....")
-    with open("/home/jimmy/VIP_PTM/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
+
+    with open(f"{USER_PREFIX}/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
         contents = pickle.load(file)
     
     dict_str = json.dumps(contents, indent=4)
