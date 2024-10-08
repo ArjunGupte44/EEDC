@@ -8,6 +8,7 @@ from new_llm_optimize import llm_optimize, handle_compilation_error, handle_logi
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from energy.src.measure_energy import get_evaluator_feedback
 from energy.src.benchmark import Benchmark
+import shutil
 load_dotenv()
 USER_PREFIX = os.getenv('USER_PREFIX')
 
@@ -81,7 +82,7 @@ def master_script(optim_iter):
             # Success
             if regression_test_result == 1:
                 success += 1
-                os.copy(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
+                shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
                 print("Regression test successful")
                 break
         
