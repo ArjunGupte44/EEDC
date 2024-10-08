@@ -98,6 +98,9 @@ def llm_optimize(filename, optim_iter):
     if optim_iter != 0:
         source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
 
+    if optim_iter == -1:
+        source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++"
+
     with open(source_path, "r") as file:
         code_content = file.read()
 

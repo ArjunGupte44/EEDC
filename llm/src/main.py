@@ -31,7 +31,11 @@ def master_script(optim_iter):
         # if filename != "spectralnorm.gpp-6.c++":
         #     continue
             
+        os.system(f"cp {USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename} {USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
+
         print(f"Optimizing {filename}, longest step")
+
+        
         if llm_optimize(filename, optim_iter) != 0:
             print("Error in optimization, exiting script")
             return
@@ -51,9 +55,9 @@ def master_script(optim_iter):
 
             # Compilation error in optimized file, re-prompt
             if regression_test_result == -1:
-                if compilation_errors == 3:
-                    print("Could not compile optimized file after 3 attempts, will re-optimize from original file")
-                    llm_optimize(filename, optim_iter)
+                if compilation_errors == 1:
+                    print("Could not compile optimized file after 3 attempts, will re-optimize from lastly compiling file")
+                    llm_optimize(filename, -1)
                     compilation_errors = 0
                     continue
                 print("Error in optimized file, re-optimizing")
@@ -77,6 +81,7 @@ def master_script(optim_iter):
             # Success
             if regression_test_result == 1:
                 success += 1
+                os.copy(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
                 print("Regression test successful")
                 break
         
