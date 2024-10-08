@@ -12,7 +12,7 @@ energy_csv_file.close()
 for benchmark in benchmark_dirs:
     #Compile the benchmark's code
     try:
-        result = subprocess.run("make compile_compiler_optimized", cwd= f"/home/arjun/VIP_PTM/EEDC/benchmarks/{benchmark}", stderr=subprocess.PIPE, check=True, shell=True)
+        result = subprocess.run("make compile", cwd= f"/home/arjun/VIP_PTM/EEDC/benchmarks/{benchmark}", stderr=subprocess.PIPE, check=True, shell=True)
         print(f"Successfully compiled {benchmark}.")
     except subprocess.CalledProcessError as e:
         print(f"Error while compiling {benchmark} raw code:")
