@@ -23,12 +23,32 @@ def evaluator_llm(benchmark_info):
     current_avg_runtime = benchmark_info["current"]["avg_runtime"]
 
     prompt = f"""
-    You are a code optimization expert. Evaluate the following current code snippet in terms of time and space complexity, readability, and performance. Please provide a detailed analysis of the code's efficiency and suggest further optimizations using the best energy code and original code as reference. Your response should include:
+    You are a code optimization and energy efficiency expert. Evaluate the following current code snippet in terms of time complexity, space complexity, readability, energy usage, and performance, considering both the original and optimized code. Please provide a comprehensive analysis of the code's efficiency, energy consumption, and suggest further optimizations. Your feedback should include:
 
-    1. An analysis of how the code currently works.
-    2. Any inefficiencies or bottlenecks in terms of time, space, or readability.
-    3. Step-by-step suggestions for improving the code, including alternative algorithms, data structures, or any other performance enhancement strategies.
-    4. Examples of how the code can be changed or rewritten to achieve better performance in terms of energy usage.
+    1. **Current Code Behavior**:
+    - Explain how the current code functions, highlighting its design, algorithm choices, and any assumptions it makes.
+    
+    2. **Inefficiencies and Bottlenecks**:
+    - Identify potential inefficiencies in terms of time complexity (e.g., algorithm choice), space complexity (e.g., memory usage), and readability (e.g., structure, variable naming, etc.).
+    - Highlight any specific patterns or functions that are likely to consume excessive energy or computational resources.
+    
+    3. **Energy-Efficiency Specific Analysis**:
+    - Analyze the energy consumption of the current code and identify why certain parts of the code might be consuming more energy compared to the optimized version. Look for energy-heavy operations such as frequent memory allocations, disk I/O, or inefficient loops.
+    
+    4. **Comparison to Best Optimized Code**:
+    - Compare the current code with the best optimized code (lowest energy usage) provided. Highlight key differences that contribute to energy efficiency, such as:
+        - Use of more efficient data structures or algorithms.
+        - Modifications that reduce energy-intensive operations.
+        - Opportunities to utilize hardware more efficiently (e.g., parallelism, vectorization, etc.).
+
+    5. **Improvement Suggestions**:
+    - Provide step-by-step suggestions for improving the current code, with a focus on reducing energy consumption, maintaining or improving runtime performance, and preserving readability.
+    - Suggest any algorithmic improvements or refactorings that could help save energy. Recommend alternative approaches (e.g., swapping to a more energy-efficient algorithm).
+    - Provide concrete code examples of how the current code could be refactored to reduce energy usage.
+
+    6. **Energy-Specific Metrics and Best Practices**:
+    - Suggest best practices and coding patterns for energy-efficient code, particularly focusing on areas where the current code deviates from these principles.
+    - Point out potential areas where energy could be saved, such as reducing CPU-bound tasks, optimizing memory usage, or minimizing I/O operations.
 
     Here is the original code snippet:
     ```
@@ -51,10 +71,9 @@ def evaluator_llm(benchmark_info):
     Average energy usage: {current_avg_energy}
     Average run time: {current_avg_runtime}
 
-    Please respond in natural language (English) with actionable suggestions for improving the code's performance in terms of energy usage. Do not provide code.
+    Please respond in natural language (English) with actionable suggestions for improving the code's performance in terms of energy usage. Provide only the best code with the lowest energy usage.
     """
 
-        
 
     client = OpenAI(api_key=openai_key)
     
@@ -72,6 +91,9 @@ def evaluator_llm(benchmark_info):
     #write to file
     current_dir = os.path.dirname(__file__)
     file_path = os.path.join(current_dir, "evaluator_feedback.txt")
+    prompt_path = os.path.join(current_dir, "evaluator_promt.txt")
+    with open(prompt_path, "w") as file:
+        file.write(prompt)
     with open(file_path, "w") as file:
         file.write(evaluator_feedback)
     

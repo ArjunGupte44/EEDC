@@ -7,52 +7,94 @@ import os
 load_dotenv()
 openai_key = os.getenv('API_KEY')
 USER_PREFIX = os.getenv('USER_PREFIX')
-prompt = f"""You are tasked with optimizing the following code for energy efficiency, specifically focusing on time and space complexity. Analyze the code and provide an explicit step-by-step explanation of how sections of the code can be optimized. Explicitly consider multiple optimization paths (e.g., different algorithms, data structures). After evaluating the pros and cons of each, choose the most efficient strategy and update the code accordingly. After walking through the analysis, implement the necessary changes directly into the code. Some aspects of the code to consider for optimization include:
+prompt = """You are tasked with optimizing the following C++ code for energy efficiency, specifically focusing on reducing CPU cycles, minimizing memory access, and optimizing I/O operations. Analyze the code thoroughly and suggest multiple optimization strategies, considering the following aspects:
 
-                Reduction of nested loops
-                Efficient data structure selection
-                Dynamic programming or memorization opportunities
-                Utilization of specialized algorithms
-                Code simplicity and readability
-
+                Reduction of nested loops: Identify opportunities to simplify or eliminate nested loops to reduce computational overhead.
+                Efficient data structure selection: Propose data structures that minimize memory access and improve performance.
+                Dynamic programming or memoization: Look for opportunities to avoid redundant calculations and reduce CPU cycles.
+                Specialized algorithms: Explore if more efficient algorithms can be applied to lower resource usage.
+                I/O optimization: Suggest ways to optimize input/output operations, reducing their impact on performance.
+                Code simplicity and readability: Ensure that the optimized code remains understandable while achieving energy efficiency.
+                
+                Provide a detailed step-by-step explanation of your analysis and the reasoning behind each optimization strategy. After evaluating the pros and cons of each approach, choose the most effective strategy and implement the necessary changes directly into the code. Make sure the optimized code and the original code provide the same output in the same format for any given input. This is critical to the optimization.
+                
+                Here is an example of desirable optimization:
                 Example of optimization: 
-                Example of Python code to be optimized:
+                Example of cpp code to be optimized:
                 ```
-                # Define a list of numbers
-                numbers = [1, 2, 3, 4, 5]
+                #include <iostream>
+                #include <vector>
 
-                # Nested loops to calculate the sum of all pairwise products
-                total_sum = 0
-                for i in numbers:
-                    for j in numbers:
-                        total_sum += i * j
+                using namespace std;
 
-                print("Total sum of pairwise products:", total_sum)
-                ```
+                // Inefficient code for finding duplicates in a vector of user IDs
+                vector<int> findDuplicates(const vector<int>& userIds) {
+                    vector<int> duplicates;
+                    for (size_t i = 0; i < userIds.size(); ++i) {
+                        for (size_t j = i + 1; j < userIds.size(); ++j) {
+                            if (userIds[i] == userIds[j]) {
+                                duplicates.push_back(userIds[i]);
+                            }
+                        }
+                    }
+                    return duplicates;
+                }
 
-                Example of updated Python Code after Optimization:
-                ```
-                import numpy as np
-                from scipy import sparse
+                int main() {
+                    vector<int> userIds = {1, 2, 3, 2, 4, 5, 1, 3, 5};
+                    vector<int> duplicates = findDuplicates(userIds);
 
-                # Define a list of numbers
-                numbers = [1, 2, 3, 4, 5]
+                    cout << "Duplicate user IDs: ";
+                    for (int id : duplicates) {
+                        cout << id << " ";
+                    }
+                    cout << endl;
 
-                # Calculate the pairwise products using the Kronecker product
-                pairwise_products = sparse.kron(numbers, numbers)
-
-                # Sum up all the elements in the matrix
-                total_sum = np.sum(pairwise_products)
-
-                print("Total sum of pairwise products:", total_sum)
+                    return 0;
+                }
                 ```
 
                 Here is the actual code to be optimized: 
-                """
+                ```
+                #include <iostream>
+                #include <vector>
+                #include <unordered_set>
+
+                using namespace std;
+
+                // Optimized code for finding duplicates in a vector of user IDs
+                vector<int> findDuplicates(const vector<int>& userIds) {
+                    unordered_set<int> seen;  // Set to track seen user IDs
+                    unordered_set<int> duplicates;  // Set to store duplicates
+                    for (int id : userIds) {
+                        if (seen.find(id) != seen.end()) {
+                            duplicates.insert(id);  // Add to duplicates if already seen
+                        } else {
+                            seen.insert(id);  // Mark as seen
+                        }
+                    }
+                    return vector<int>(duplicates.begin(), duplicates.end());  // Convert set to vector
+                }
+
+                int main() {
+                    vector<int> userIds = {1, 2, 3, 2, 4, 5, 1, 3, 5};
+                    vector<int> duplicates = findDuplicates(userIds);
+
+                    cout << "Duplicate user IDs: ";
+                    for (int id : duplicates) {
+                        cout << id << " ";
+                    }
+                    cout << endl;
+
+                    return 0;
+                }
+                ```
+"""
 
 def llm_optimize(filename, optim_iter):
     source_path = f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/" + filename
 
+    #if it's not the 0th iteration, get the optimized
     if optim_iter != 0:
         source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
 
@@ -78,6 +120,7 @@ def llm_optimize(filename, optim_iter):
     if os.path.isfile(feedback_file_path):
         with open(feedback_file_path, 'r') as file:
             evaluator_feedback = file.read()
+            evaluator_feedback = "Here's some suggestion on how you should optimize the code from the evaluator, keep these in mind when optimizing code\n" + evaluator_feedback
             print("llm_optimize: got evaluator feedback")
         # print("File content:", content)
     else:
@@ -85,12 +128,12 @@ def llm_optimize(filename, optim_iter):
         print("llm_optimize: Evaluator haven't gave feedback")
 
     # add code content to prompt
-    optimize_prompt = prompt + f" {code_content}" + f"{evaluator_feedback}"
+    optimize_prompt = prompt + f" {code_content}" + f" {evaluator_feedback}"
 
     with open(f"{USER_PREFIX}/EEDC/llm/src/output_logs/optimize_prompt_log.txt", "w") as f:
         f.write(optimize_prompt)
 
-    client = OpenAI(api_key=openai_key)  
+    client = OpenAI(api_key=openai_key)
 
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-2024-08-06",
@@ -109,7 +152,6 @@ def llm_optimize(filename, optim_iter):
         return
     
     final_code = completion.choices[0].message.parsed.final_code
-    # final_code = "hello this is final code"
     
     print(f"\nnew_llm_optimize (llm_optimize): writing optimized code to llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}")
     destination_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}"

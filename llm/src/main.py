@@ -15,17 +15,17 @@ USER_PREFIX = os.getenv('USER_PREFIX')
 def master_script(optim_iter):
     for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
         
-        # Temporary to only run on binarytrees
-        if filename != "binarytrees.gpp-9.c++":
-            continue
+        # Temporary test
+        # if filename != "binarytrees.gpp-9.c++":
+        #     continue
         # if filename != "chameneosredux.gpp-5.c++":
         #     continue
         # if filename != "fannkuchredux.gpp-5.c++":
         #     continue
         # if filename != "knucleotide.gpp-3.c++":
         #     continue
-        # if filename != "nbody.gpp-8.c++":
-        #     continue
+        if filename != "nbody.gpp-8.c++":
+            continue
         # if filename != "pidigits.gpp-4.c++":
         #     continue
         # if filename != "spectralnorm.gpp-6.c++":

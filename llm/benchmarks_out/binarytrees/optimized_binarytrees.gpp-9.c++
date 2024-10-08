@@ -1,107 +1,104 @@
 #include <iostream>
 #include <vector>
-#include <omp.h>
+#include <mutex>
+#include <cstdlib>
+#include <algorithm>
+#include <cstring>
+// Removed OpenMP for debugging output differences
 
-class Node {
-public:
-    Node* left = nullptr;
-    Node* right = nullptr;
+const size_t LINE_SIZE = 128;
+
+struct Node {
+    Node* l = nullptr;
+    Node* r = nullptr;
 
     int check() const {
-        // Traversing recursively to count all nodes
-        int node_count = 1; // Include self
-        if (left) node_count += left->check();
-        if (right) node_count += right->check();
-        return node_count;
+        return (l ? l->check() : 0) + (r ? r->check() : 0) + 1;
     }
 };
 
 class NodePool {
 public:
-    Node* alloc() {
-        if (!nodes_.empty()) {
-            Node* node = nodes_.back();
-            nodes_.pop_back();
-            return node;
+    std::vector<Node*> pool;
+
+    Node* allocate() {
+        if (!pool.empty()) {
+            Node* n = pool.back();
+            pool.pop_back();
+            n->l = nullptr;
+            n->r = nullptr;
+            return n;
         }
-        Node* node = new Node();
-        allocated_.push_back(node);
-        return node;
+        return new Node();
     }
 
-    void recycle(Node* node) {
-        if (node == nullptr) return;
-        node->left = nullptr;
-        node->right = nullptr;
-        nodes_.push_back(node);
+    void deallocate(Node* n) {
+        pool.push_back(n);
     }
 
     ~NodePool() {
-        for (Node* node : allocated_) {
-            delete node;
+        for (Node* n : pool) {
+            delete n;
         }
     }
-
-private:
-    std::vector<Node*> nodes_; // Recycled nodes
-    std::vector<Node*> allocated_; // All allocated nodes
 };
 
-Node* makeTree(int depth, NodePool& pool) {
-    if (depth <= 0) return nullptr;
-    Node* node = pool.alloc();
-    node->left = makeTree(depth - 1, pool);
-    node->right = makeTree(depth - 1, pool);
-    return node;
+Node* make(NodePool& pool, int depth) {
+    Node* root = pool.allocate();
+    if (depth > 0) {
+        root->l = make(pool, depth - 1);
+        root->r = make(pool, depth - 1);
+    }
+    return root;
 }
 
-void freeTree(Node* node, NodePool& pool) {
-    if (node == nullptr) return;
-    freeTree(node->left, pool);
-    freeTree(node->right, pool);
-    pool.recycle(node);
+void deleteTree(NodePool& pool, Node* node) {
+    if (!node) return;
+    deleteTree(pool, node->l);
+    deleteTree(pool, node->r);
+    pool.deallocate(node);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     int min_depth = 4;
-    int max_depth = (argc == 2 ? std::max(min_depth + 2, atoi(argv[1])) : 10);
+    int max_depth = std::max(min_depth + 2, (argc == 2 ? atoi(argv[1]) : 12));
     int stretch_depth = max_depth + 1;
 
-    {
-        NodePool temporaryPool;
-        Node* c = makeTree(stretch_depth, temporaryPool);
-        std::cout << "stretch tree of depth " << stretch_depth << "\t"
-                  << "check: " << c->check() << std::endl;
-        freeTree(c, temporaryPool);
-    }
+    NodePool pool;
 
-    NodePool longTermPool;
-    Node* longLivedTree = makeTree(max_depth, longTermPool);
+    // Stretch tree
+    Node* stretch_tree = make(pool, stretch_depth);
+    std::cout << "stretch tree of depth " << stretch_depth << "\t check: " << stretch_tree->check() << std::endl;
+    deleteTree(pool, stretch_tree);
 
-    #pragma omp parallel for schedule(dynamic,1)
+    // Long-lived tree
+    Node* long_lived_tree = make(pool, max_depth);
+
+    std::vector<std::string> results;
+    // std::mutex results_mutex;  // Mutex for threading, not used here
+
     for (int d = min_depth; d <= max_depth; d += 2) {
+        NodePool local_pool;  // Each depth level gets its own pool to avoid cross-level issues
         int iterations = 1 << (max_depth - d + min_depth);
-        int local_check_sum = 0; // Local to each thread
+        int c = 0;
 
-        NodePool pool;
-
-        for (int i = 0; i < iterations; ++i) {
-            Node* a = makeTree(d, pool);
-            local_check_sum += a->check();
-            freeTree(a, pool);
+        for (int i = 1; i <= iterations; ++i) {
+            Node* a = make(local_pool, d);
+            c += a->check();
+            deleteTree(local_pool, a);
         }
 
-        #pragma omp critical
-        {
-            // Correctly accumulate thread-local results to global output
-            std::cout << iterations << "\t trees of depth " << d 
-                      << "\t check: " << local_check_sum << std::endl;
-        }
+        char buffer[LINE_SIZE];
+        snprintf(buffer, LINE_SIZE, "%d\t trees of depth %d\t check: %d\n", iterations, d, c);
+        results.push_back(std::string(buffer));
     }
 
-    std::cout << "long lived tree of depth " << max_depth << "\t check: "
-              << longLivedTree->check() << "\n";
-    freeTree(longLivedTree, longTermPool);
+    for (auto& result : results) {
+        std::cout << result;
+    }
+
+    std::cout << "long lived tree of depth " << max_depth << "\t check: " << long_lived_tree->check() << "\n";
+    deleteTree(pool, long_lived_tree);
 
     return 0;
 }
