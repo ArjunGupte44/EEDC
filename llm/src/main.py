@@ -82,6 +82,8 @@ def master_script(optim_iter):
             # Success
             if regression_test_result == 1:
                 success += 1
+                # if file to copy to doesn't exist, create it
+                os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++"), exist_ok=True)
                 shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
                 print("Regression test successful")
                 break
