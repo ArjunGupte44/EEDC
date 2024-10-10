@@ -12,6 +12,8 @@ import shutil
 load_dotenv()
 USER_PREFIX = os.getenv('USER_PREFIX')
 
+total_logic_errors, logic_errors_fixed = 0, 0
+total_compilation_errors, compilation_errors_fixed = 0, 0
 
 def master_script(optim_iter):
     for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
@@ -44,11 +46,21 @@ def master_script(optim_iter):
         print(f"Running regression test on {filename}")
         regression_test_result = -3
         compilation_errors, output_errors, success = 0, 0, 0
+        total_compilation_errors, compilation_errors_fixed = 0, 0
+        i = 0
+        prev = 0, prev_logic = 0
 
         # Run llm optimization until successful regression test
         while True:
+            i += 1
             regression_test_result = regression_test(f"llm/llm_input_files/input_code/{filename}", f"llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", filename.split('.')[0])
             
+            if prev + 1 == i and regression_test_result != -1:
+                compilation_errors_fixed += 1
+
+            if prev_logic + 1 == i and regression_test_result != 0:
+                logic_errors_fixed += 1
+
             # Compilation error in unoptimized file, exit script
             if regression_test_result == -2:
                 print("Error in unoptimized file, exiting script")
@@ -56,8 +68,10 @@ def master_script(optim_iter):
 
             # Compilation error in optimized file, re-prompt
             if regression_test_result == -1:
+                total_compilation_errors += 1
+                prev = i
                 if compilation_errors == 1:
-                    print("Could not compile optimized file after 3 attempts, will re-optimize from lastly compiling file")
+                    print("Could not compile optimized file after 1 attempts, will re-optimize from lastly compiling file")
                     llm_optimize(filename, -1)
                     compilation_errors = 0
                     continue
@@ -67,16 +81,18 @@ def master_script(optim_iter):
 
             # Output difference in optimized file, re-prompt
             if regression_test_result == 0:
+                total_logic_errors += 1
                 print("Output difference in optimized file, calling handle_logic_error")
                 if output_errors == 3:
                     print("Output differences after 3 attempts, will provide output differences to llm")
                     handle_logic_error(filename, True)
                 elif output_errors > 3:
                     print("Still output differences after providing output differences to llm, will re-optimize from original file")
-                    llm_optimize(filename, optim_iter)
+                    llm_optimize(filename, -1)
                     output_errors = 0
                     continue
                 handle_logic_error(filename, False)
+                prev_logic = i
                 output_errors += 1
             
             # Success
@@ -102,6 +118,9 @@ if __name__ == "__main__":
     for optim_iter in range(0, 5):
         print(f"Optimized iteration {optim_iter}")
         master_script(optim_iter)
+
+    print(f"Total compilation errors: {total_compilation_errors}, fixed: {compilation_errors_fixed}")
+    print(f"Total logic errors: {total_logic_errors}, fixed: {logic_errors_fixed}")
 
     #write result
     print("EEDC Optimization Complete, writing results to file.....")
