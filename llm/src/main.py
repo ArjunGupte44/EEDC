@@ -1,65 +1,56 @@
-import sys
 import os
-import pickle
+import sys
 import json
-from dotenv import load_dotenv
-from regression_test import regression_test
-from new_llm_optimize import llm_optimize, handle_compilation_error, handle_logic_error
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from energy.src.measure_energy import get_evaluator_feedback
-from energy.src.benchmark import Benchmark
 import shutil
+import pickle
+from dotenv import load_dotenv
 load_dotenv()
 USER_PREFIX = os.getenv('USER_PREFIX')
 
-total_logic_errors, logic_errors_fixed = 0, 0
+from regression_test import regression_test
+from new_llm_optimize import llm_optimize, handle_compilation_error
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from energy.src.measure_energy import get_evaluator_feedback
+
 total_compilation_errors, compilation_errors_fixed = 0, 0
 
-def master_script(optim_iter):
+def master_script():
+    global total_compilation_errors, compilation_errors_fixed
     for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
         
-        # Temporary test
-        # if filename != "binarytrees.gpp-9.c++":
-        #     continue
-        # if filename != "chameneosredux.gpp-5.c++":
-        #     continue
-        # if filename != "fannkuchredux.gpp-5.c++":
-        #     continue
-        # if filename != "knucleotide.gpp-3.c++":
-        #     continue
-        if filename != "nbody.gpp-8.c++":
+        # What to avoid 
+        if filename != "binarytrees.gpp-9.c++":
             continue
-        # if filename != "pidigits.gpp-4.c++":
+        # if filename == "chameneosredux.gpp-5.c++":
         #     continue
-        # if filename != "spectralnorm.gpp-6.c++":
+        # if filename == "chameneosredux.gpp-5.c++":
         #     continue
-            
-        os.system(f"cp {USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename} {USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
+        # if filename == "fasta.gpp-5.c++":
+        #     continue
+        # if filename == "revcomp.gpp-4.c++":
+        #     continue
 
-        print(f"Optimizing {filename}, longest step")
-
+        # Keep a copy of a compiling file for re-optimization
+        shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
         
-        if llm_optimize(filename, optim_iter) != 0:
+        print(f"Optimizing {filename}, longest step")
+        if llm_optimize(filename) != 0:
             print("Error in optimization, exiting script")
             return
         
         print(f"Running regression test on {filename}")
         regression_test_result = -3
-        compilation_errors, output_errors, success = 0, 0, 0
-        total_compilation_errors, compilation_errors_fixed = 0, 0
-        i = 0
-        prev = 0, prev_logic = 0
+        compilation_errors, success = 0, 0
+        i, occurence_of_compilation_error = 0, 0
 
         # Run llm optimization until successful regression test
         while True:
             i += 1
-            regression_test_result = regression_test(f"llm/llm_input_files/input_code/{filename}", f"llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", filename.split('.')[0])
+            regression_test_result = regression_test(f"optimized_{filename}")
             
-            if prev + 1 == i and regression_test_result != -1:
+            # Log compilation fixed errors
+            if occurence_of_compilation_error + 1 == i and regression_test_result != -1:
                 compilation_errors_fixed += 1
-
-            if prev_logic + 1 == i and regression_test_result != 0:
-                logic_errors_fixed += 1
 
             # Compilation error in unoptimized file, exit script
             if regression_test_result == -2:
@@ -69,10 +60,10 @@ def master_script(optim_iter):
             # Compilation error in optimized file, re-prompt
             if regression_test_result == -1:
                 total_compilation_errors += 1
-                prev = i
-                if compilation_errors == 1:
-                    print("Could not compile optimized file after 1 attempts, will re-optimize from lastly compiling file")
-                    llm_optimize(filename, -1)
+                occurence_of_compilation_error = i
+                if compilation_errors == 3:
+                    print("Could not compile optimized file after 3 attempts, will re-optimize from lastly compiling file")
+                    llm_optimize(f"{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
                     compilation_errors = 0
                     continue
                 print("Error in optimized file, re-optimizing")
@@ -81,48 +72,32 @@ def master_script(optim_iter):
 
             # Output difference in optimized file, re-prompt
             if regression_test_result == 0:
-                total_logic_errors += 1
-                print("Output difference in optimized file, calling handle_logic_error")
-                if output_errors == 3:
-                    print("Output differences after 3 attempts, will provide output differences to llm")
-                    handle_logic_error(filename, True)
-                elif output_errors > 3:
-                    print("Still output differences after providing output differences to llm, will re-optimize from original file")
-                    llm_optimize(filename, -1)
-                    output_errors = 0
-                    continue
-                handle_logic_error(filename, False)
-                prev_logic = i
-                output_errors += 1
+                print("Output difference in optimized file, will re-optimize from lastly compiling file")
+                llm_optimize(f"{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
+                continue
             
             # Success
             if regression_test_result == 1:
                 success += 1
-                # if file to copy to doesn't exist, create it
-                os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++"), exist_ok=True)
-                shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++")
+                if success == 1:
+                    get_evaluator_feedback(filename, 0)
+                else:
+                    get_evaluator_feedback(filename, 1)
+                print("Got evaluator feedback")
+                # Copy compiling file
+                os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
+                shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
                 print("Regression test successful")
-                break
+                
+                # Hard code to run 5 times
+                if success == 5:
+                    print("Optimized 5 times successfully, exiting script")
+                    break
         
-        
-        print(f"{optim_iter}: passing code to measure energy and get evaluator feedback")
-        get_evaluator_feedback(filename, optim_iter)
-        print("got evaluator feedback")
-        return
-
-
 if __name__ == "__main__":
 
-    #preload original code and data to the pkl file
-    # #run for 5 iterations
-    for optim_iter in range(0, 5):
-        print(f"Optimized iteration {optim_iter}")
-        master_script(optim_iter)
-
+    master_script()
     print(f"Total compilation errors: {total_compilation_errors}, fixed: {compilation_errors_fixed}")
-    print(f"Total logic errors: {total_logic_errors}, fixed: {logic_errors_fixed}")
-
-    #write result
     print("EEDC Optimization Complete, writing results to file.....")
 
     with open(f"{USER_PREFIX}/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
@@ -132,8 +107,7 @@ if __name__ == "__main__":
     with open("result_file.txt", "w+") as file:
         file.write(str(dict_str))
 
-
-    #delete evaluator feedback
+    # Delete evaluator feedback
     file_path = f"{USER_PREFIX}/EEDC/energy/src/evaluator_feedback.txt"
     try:
         # Check if file exists

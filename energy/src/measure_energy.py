@@ -93,7 +93,6 @@ def print_benchmark_info(benchmark_info):
     print("Average Runtime:", benchmark_info["current"]["avg_runtime"])
     print("\n")
 
-
 def get_evaluator_feedback(filename, optim_iter):
 
     language = filename.split(".")[-1]
@@ -142,11 +141,6 @@ def get_evaluator_feedback(filename, optim_iter):
     return benchmark_info
 
 if __name__ == "__main__":
-    # get_evaluator_feedback("binarytrees.gpp-9.c++", 0)
     for i in range(0,4):
         print(f"Iteration {i}")
         get_evaluator_feedback("binarytrees.gpp-9.c++", i)
-
-    # with open("/home/jimmy/VIP_PTM/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
-    #     contents = pickle.load(file)
-    #     print(contents)

@@ -81,180 +81,130 @@ You are tasked with optimizing the following C++ code for energy efficiency, spe
                 }
                 ```
  #include <iostream>
-#include <cmath>
-#include <vector>
+#include <stdlib.h>
+#include <stdio.h>
+#include <apr_pools.h>
 
-constexpr double PI = 3.141592653589793; 
-constexpr double SOLAR_MASS = 4 * PI * PI;
-constexpr double DAYS_PER_YEAR = 365.24;
 
-struct Body {
-    double x[3], v[3], mass;
-    constexpr Body(double x0, double x1, double x2, double v0, double v1, double v2, double Mass) :
-        x{x0, x1, x2}, v{v0, v1, v2}, mass(Mass) {}
-};
+const size_t    LINE_SIZE = 64;
 
-class NBodySystem {
-    std::vector<Body> bodies;
-
-    void offsetMomentum() {
-        for (size_t i = 1; i < bodies.size(); ++i) {
-            for (unsigned int k = 0; k < 3; ++k) {
-                bodies[0].v[k] -= bodies[i].v[k] * bodies[i].mass / SOLAR_MASS;
-            }
-        }
-    }
-
-    void computeForces(double dt) {
-        for (size_t i = 0; i < bodies.size(); ++i) {
-            for (size_t j = i + 1; j < bodies.size(); ++j) {
-                double dx = bodies[i].x[0] - bodies[j].x[0];
-                double dy = bodies[i].x[1] - bodies[j].x[1];
-                double dz = bodies[i].x[2] - bodies[j].x[2];
-
-                double dsquared = dx * dx + dy * dy + dz * dz;
-                double distance = std::sqrt(dsquared);
-                double mag = dt / (dsquared * distance);
-
-                for (unsigned int k = 0; k < 3; ++k) {
-                    double rk = k == 0 ? dx : (k == 1 ? dy : dz);
-                    bodies[i].v[k] -= rk * mag * bodies[j].mass;
-                    bodies[j].v[k] += rk * mag * bodies[i].mass;
-                }
-            }
-        }
-
-        for (auto &body : bodies) {
-            for (unsigned int m = 0; m < 3; ++m) {
-                body.x[m] += dt * body.v[m];
-            }
-        }
-    }
-
+class Apr
+{
 public:
-    NBodySystem(std::vector<Body> init_bodies) : bodies(std::move(init_bodies)) {
-        offsetMomentum();
+    Apr() 
+    {
+        apr_initialize();
     }
 
-    void advance(double dt) {
-        computeForces(dt);
-    }
-
-    double energy() const {
-        double e = 0.0;
-        for (auto bi = bodies.cbegin(); bi != bodies.cend(); ++bi) {
-            e += bi->mass * (bi->v[0] * bi->v[0] + bi->v[1] * bi->v[1] + bi->v[2] * bi->v[2]) / 2.0;
-            auto bj = bi;
-            for (++bj; bj != bodies.end(); ++bj) {
-                double distance2 = 0;
-                for (auto k = 0; k < 3; ++k) {
-                    const double dx = bi->x[k] - bj->x[k];
-                    distance2 += dx * dx;
-                }
-                e -= (bi->mass * bj->mass) / std::sqrt(distance2);
-            }
-        }
-        return e;
+    ~Apr() 
+    {
+        apr_terminate();
     }
 };
 
-int main(int argc, char **argv) {
-    int n = argc > 1 ? std::atoi(argv[1]) : 1000;
-    std::vector<Body> init_bodies = {  
-        Body(0., 0., 0., 0., 0., 0., SOLAR_MASS),
-        Body(4.84143144246472090e+00, -1.16032004402742839e+00, -1.03622044471123109e-01,
-             1.66007664274403694e-03 * DAYS_PER_YEAR, 7.69901118419740425e-03 * DAYS_PER_YEAR, -6.90460016972063023e-05 * DAYS_PER_YEAR,
-             9.54791938424326609e-04 * SOLAR_MASS),
-        Body(8.34336671824457987e+00, 4.12479856412430479e+00, -4.03523417114321381e-01,
-             -2.76742510726862411e-03 * DAYS_PER_YEAR, 4.99852801234917238e-03 * DAYS_PER_YEAR, 2.30417297573763929e-05 * DAYS_PER_YEAR,
-             2.85885980666130812e-04 * SOLAR_MASS),
-        Body(1.28943695621391310e+01, -1.51111514016986312e+01, -2.23307578892655734e-01,
-             2.96460137564761618e-03 * DAYS_PER_YEAR, 2.37847173959480950e-03 * DAYS_PER_YEAR, -2.96589568540237556e-05 * DAYS_PER_YEAR,
-             4.36624404335156298e-05 * SOLAR_MASS),
-        Body(1.53796971148509165e+01, -2.59193146099879641e+01, 1.79258772950371181e-01,
-             2.68067772490389322e-03 * DAYS_PER_YEAR, 1.62824170038242295e-03 * DAYS_PER_YEAR, -9.51592254519715870e-05 * DAYS_PER_YEAR,
-             5.15138902046611451e-05 * SOLAR_MASS)
-    };
-
-    NBodySystem system(std::move(init_bodies));
+struct Node 
+{
+    Node *l, *r;
     
-    std::cout.precision(9);
-    std::cout << system.energy() << std::endl;
-    for (int i = 0; i < n; ++i) {
-        system.advance(0.01);
+    int check() const 
+    {
+        if (l)
+            return l->check() + 1 + r->check();
+        else return 1;
     }
-    std::cout << system.energy() << std::endl;
+};
+
+class NodePool
+{
+public:
+    NodePool() 
+    {
+        apr_pool_create_unmanaged(&pool);
+    }
+
+    ~NodePool() 
+    {
+        apr_pool_destroy(pool);
+    }
+
+    Node* alloc()
+    {
+        return (Node *)apr_palloc(pool, sizeof(Node));
+    }
+
+    void clear()
+    {
+        apr_pool_clear(pool);
+    }
+
+private:
+    apr_pool_t* pool;
+};
+
+Node *make(int d, NodePool &store)
+{
+    Node* root = store.alloc();
+
+    if(d>0){
+        root->l=make(d-1, store);
+        root->r=make(d-1, store);
+    }else{
+        root->l=root->r=0;
+    }
+
+    return root;
+}
+
+int main(int argc, char *argv[]) 
+{
+    Apr apr;
+    int min_depth = 4;
+    int max_depth = std::max(min_depth+2,
+                             (argc == 2 ? atoi(argv[1]) : 10));
+    int stretch_depth = max_depth+1;
+
+    // Alloc then dealloc stretchdepth tree
+    {
+        NodePool store;
+        Node *c = make(stretch_depth, store);
+        std::cout << "stretch tree of depth " << stretch_depth << "\t "
+                  << "check: " << c->check() << std::endl;
+    }
+
+    NodePool long_lived_store;
+    Node *long_lived_tree = make(max_depth, long_lived_store);
+
+    // buffer to store output of each thread
+    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth +1) * sizeof(char));
+
+    #pragma omp parallel for 
+    for (int d = min_depth; d <= max_depth; d += 2) 
+    {
+        int iterations = 1 << (max_depth - d + min_depth);
+        int c = 0;
+
+        // Create a memory pool for this thread to use.
+        NodePool store;
+
+        for (int i = 1; i <= iterations; ++i) 
+        {
+            Node *a = make(d, store);
+            c += a->check();
+            store.clear();
+        }
+
+        // each thread write to separate location
+        sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
+           iterations, d, c);
+    }
+
+    // print all results
+    for (int d = min_depth; d <= max_depth; d += 2) 
+        printf("%s", outputstr + (d * LINE_SIZE) );
+    free(outputstr);
+
+    std::cout << "long lived tree of depth " << max_depth << "\t "
+              << "check: " << (long_lived_tree->check()) << "\n";
 
     return 0;
-} Here's some suggestion on how you should optimize the code from the evaluator, keep these in mind when optimizing code
-Certainly! Let's conduct a comprehensive analysis of the current code and propose optimizations to improve its energy efficiency and performance.
-
-### 1. **Current Code Behavior:**
-
-The current code simulates the N-body problem, which involves calculating the gravitational interactions between a group of bodies (planets, in this case). The code initializes a solar system with five celestial bodies and then, in a loop, applies gravitational force calculations to update the positions and velocities of these bodies. It also computes the system's total energy before and after the simulation.
-
-### 2. **Inefficiencies and Bottlenecks:**
-
-- **Time Complexity:** 
-  - The core inefficiency in time complexity arises from nested loops to compute forces between all pairs of bodies, which is O(n^2) in nature.
-  
-- **Space Complexity:**
-  - The code uses some temporary storage, but the space complexity is manageable at O(n).
-
-- **Readability:**
-  - The code's structure is relatively clear, but can be improved by better function segregation and method explanations.
-  - Variable names are somewhat intelligible but can be improved for clarity.
-
-- **Bottleneck Sensitivities:**
-  - Calculating pairwise distances multiple times and recalculating values that could potentially be reused in loop iterations.
-  
-### 3. **Energy-Efficiency Specific Analysis:**
-
-- **Energy Usage:** 
-  - High energy usage can stem from repeated operations, like square roots and divisions, inside nested loops that could be minimized or approximated.
-  - Frequent memory accesses might also contribute to high energy consumption.
-
-### 4. **Comparison to Best Optimized Code:**
-
-- **Efficient Data Structures:**
-  - The best-optimized code uses arrays and SIMD (Single Instruction, Multiple Data) instructions effectively, especially in calculating forces and magnitudes, which minimizes CPU cycles and energy consumption.
-
-- **Reduced Redundant Calculations:**
-  - Offloads repetitive calculations like distance normalization into SIMD instructions which operate on multiple data in a single instruction.
-
-- **Functional Decomposition:**
-  - The optimized code differentiates force computation from position updates, providing clearer separation of concerns and potentially optimizing memory locality.
-
-### 5. **Improvement Suggestions:**
-
-**Implementation Suggestions:**
-- Use SIMD instructions to reduce the number of sequential operations and thus, energy usage. This can be done by replacing simple arithmetic calculations with SIMD-compatible operations for forces.
-  
-- **Data Locality Reduction:**
-  - Minimize cache misses by ordering calculations to keep data that is accessed together close to each other in memory.
-
-- **Parallelism Opportunities:**
-  - Explore parallel-processing techniques such as OpenMP to further accelerate calculations if SIMD doesn’t suffice.
-
-**Step-by-Step Suggestions:**
-- Optimize the force calculation loops with SIMD for parallel data processing.
-- Utilize function specialization, such as splitting force computation and position updates, to manage cache better and potentially aid compilers in generating optimized machine code.
-
-**Refactored Code Example:**
-Here's how you might translate the concept into a concrete implementation by using more efficient data processing. While full SIMD implementation is complex, begin by transposing calculations over vectors or using existing best practices you showcased in the lowest energy version.
-
-### 6. **Energy-Specific Metrics and Best Practices:**
-
-**Best Practices:**
-- **Avoid Redundant Calculations:** Cache results of expensive operations (like sqrt) and reuse them whenever possible.
-  
-- **Use Approximation Methods:**
-  - Consider using fast inverse square root approximations which can significantly reduce the overhead of expensive operations like sqrt.
-
-- **Minimize Memory Allocation:**
-  - Reuse pre-allocated space and prefer stack allocation over heap allocation whenever feasible to reduce dynamic memory management overhead.
-
-- **Vectorization:**
-  - As seen in your optimized code, prefer vector operations over scalar ones to utilize data-level parallelism available in modern CPUs.
-
-By applying these suggestions, you will be targeting the reduction of expensive computational tasks and optimizing memory access patterns, which collectively reduce the energy footprint and improve the runtime of simulations. It's important to iteratively test these changes to ensure that performance improvements remain significant without unintended side-effects.
+} 

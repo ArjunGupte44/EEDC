@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from openai import OpenAI
-from regression_test import regression_test
 from dotenv import load_dotenv
 import os
-
 load_dotenv()
+
 openai_key = os.getenv('API_KEY')
 USER_PREFIX = os.getenv('USER_PREFIX')
+
 prompt = """You are tasked with optimizing the following C++ code for energy efficiency, specifically focusing on reducing CPU cycles, minimizing memory access, and optimizing I/O operations. Analyze the code thoroughly and suggest multiple optimization strategies, considering the following aspects:
 
                 Reduction of nested loops: Identify opportunities to simplify or eliminate nested loops to reduce computational overhead.
@@ -91,15 +91,11 @@ prompt = """You are tasked with optimizing the following C++ code for energy eff
                 ```
 """
 
-def llm_optimize(filename, optim_iter):
-    source_path = f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/" + filename
+def llm_optimize(filename):
+    source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename}"
 
-    #if it's not the 0th iteration, get the optimized
-    if optim_iter != 0:
-        source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
-
-    if optim_iter == -1:
-        source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}_compiled.c++"
+    if filename.split('.')[1] == "compiled":
+        filename = filename.split('.')[0] + "." + filename.split('.')[2:]
 
     with open(source_path, "r") as file:
         code_content = file.read()
@@ -128,7 +124,7 @@ def llm_optimize(filename, optim_iter):
         # print("File content:", content)
     else:
         evaluator_feedback = ""
-        print("llm_optimize: Evaluator haven't gave feedback")
+        print("First optimization, no evaluator feedback yet")
 
     # add code content to prompt
     optimize_prompt = prompt + f" {code_content}" + f" {evaluator_feedback}"
@@ -198,7 +194,7 @@ def handle_compilation_error(filename):
         with open(destination_path+"/optimized_"+filename, "w") as file:
             file.write(final_code)
 
-def handle_logic_error(filename, use_output_differences):
+def handle_logic_error(filename):
     with open(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", "r") as file:
         optimized_code = file.read()
 
