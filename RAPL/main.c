@@ -28,7 +28,7 @@ int main (int argc, char **argv)
   strcat(command,argv[1]);
   //Language name
   const char *home = getenv("HOME");
-  strcpy(path, "/home/leoDeng/EEDC/energy/src/");
+  strcpy(path, "ABSOLUTE_PATH/EEDC/energy/src/");
 
   strcpy(language,argv[2]);
   strcat(language,".csv");
