@@ -31,7 +31,8 @@ def master_script():
         #     continue
 
         # Keep a copy of a compiling file for re-optimization
-        shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
+        shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+        print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
         
         print(f"Optimizing {filename}, longest step")
         if llm_optimize(filename) != 0:
@@ -41,7 +42,7 @@ def master_script():
         print(f"Running regression test on {filename}")
         regression_test_result = -3
         compilation_errors, success = 0, 0
-        i, occurence_of_compilation_error = 0, 0
+        i, occurence_of_compilation_error = 0, -2
 
         # Run llm optimization until successful regression test
         while True:
@@ -63,7 +64,8 @@ def master_script():
                 occurence_of_compilation_error = i
                 if compilation_errors == 3:
                     print("Could not compile optimized file after 3 attempts, will re-optimize from lastly compiling file")
-                    llm_optimize(f"{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
+                    print(f"{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+                    llm_optimize(f"{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
                     compilation_errors = 0
                     continue
                 print("Error in optimized file, re-optimizing")
@@ -73,20 +75,19 @@ def master_script():
             # Output difference in optimized file, re-prompt
             if regression_test_result == 0:
                 print("Output difference in optimized file, will re-optimize from lastly compiling file")
-                llm_optimize(f"{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
+                print(f"{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+                llm_optimize(f"{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
                 continue
             
             # Success
             if regression_test_result == 1:
+                get_evaluator_feedback(filename, success)
                 success += 1
-                if success == 1:
-                    get_evaluator_feedback(filename, 0)
-                else:
-                    get_evaluator_feedback(filename, 1)
                 print("Got evaluator feedback")
                 # Copy compiling file
-                os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
-                shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}")
+                print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+                os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
+                shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
                 print("Regression test successful")
                 
                 # Hard code to run 5 times

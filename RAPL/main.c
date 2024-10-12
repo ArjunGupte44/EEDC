@@ -5,7 +5,6 @@
 #include <math.h>
 #include <string.h>
 #include "rapl.h"
-#include <sys/time.h>
 
 #define RUNTIME 1
 
@@ -29,8 +28,7 @@ int main (int argc, char **argv)
   //Language name
   strcpy(language,argv[2]);
   //Path to language .csv file
-  //strcat(path,"Path/to/EEDC/energy/src/language.csv");
-  strcat(path,"EEDC/energy/src/");
+  strcpy(path, "ABSOLUTE_PATH/EEDC/energy/src/");
   strcat(language,".csv");
   strcat(path,language);
   //Test name
@@ -80,6 +78,5 @@ int main (int argc, char **argv)
 
   return 0;
 }
-
 
 
