@@ -1,10 +1,10 @@
 include ../../../.env
 
 compile:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 knucleotide.gpp-3.c++ -o knucleotide.gpp-3.c++.o &&  /usr/bin/g++ knucleotide.gpp-3.c++.o -o knucleotide.gpp-3.gpp_run -Wl,--no-as-needed -lpthread 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++14 knucleotide.gpp-3.c++ -o knucleotide.gpp-3.c++.o &&  /usr/bin/g++ knucleotide.gpp-3.c++.o -o knucleotide.gpp-3.gpp_run -Wl,--no-as-needed -lpthread 
 
 compile_optimized:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 optimized_knucleotide.gpp-3.c++ -o optimized_knucleotide.gpp-3.c++.o &&  /usr/bin/g++ optimized_knucleotide.gpp-3.c++.o -o optimized_knucleotide.gpp-3.gpp_run -Wl,--no-as-needed -lpthread 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++14 optimized_knucleotide.gpp-3.c++ -o optimized_knucleotide.gpp-3.c++.o &&  /usr/bin/g++ optimized_knucleotide.gpp-3.c++.o -o optimized_knucleotide.gpp-3.gpp_run -Wl,--no-as-needed -lpthread 
 
 measure:
 	sudo modprobe msr

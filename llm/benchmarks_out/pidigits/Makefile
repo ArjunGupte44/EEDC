@@ -1,10 +1,10 @@
 include ../../../.env
 
 compile:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -g pidigits.gpp-4.c++ -o pidigits.gpp-4.c++.o &&  /usr/bin/g++ pidigits.gpp-4.c++.o -o pidigits.gpp-4.gpp_run -lgmp -lgmpxx 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++14 -g pidigits.gpp-4.c++ -o pidigits.gpp-4.c++.o &&  /usr/bin/g++ pidigits.gpp-4.c++.o -o pidigits.gpp-4.gpp_run -lgmp -lgmpxx 
 
 compile_optimized:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++14 -g optimized_pidigits.gpp-4.c++ -o optimized_pidigits.gpp-4.c++.o &&  /usr/bin/g++ optimized_pidigits.gpp-4.c++.o -o optimized_pidigits.gpp-4.gpp_run -lgmp -lgmpxx 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++14 -g optimized_pidigits.gpp-4.c++ -o optimized_pidigits.gpp-4.c++.o &&  /usr/bin/g++ optimized_pidigits.gpp-4.c++.o -o optimized_pidigits.gpp-4.gpp_run -lgmp -lgmpxx 
 
 measure:
 	sudo modprobe msr

@@ -25,20 +25,16 @@ int main (int argc, char **argv)
   FILE * fp;
 
   //Run command
-//  strcpy(command, "./" );
   strcat(command,argv[1]);
   //Language name
-  const char *home = getenv("HOME");
-  strcpy(path, home);
-  strcat(path,"EEDC/energy/src/");
-
   strcpy(language,argv[2]);
+  //Path to language .csv file
+  //strcat(path,"Path/to/EEDC/energy/src/language.csv");
+  strcat(path,"EEDC/energy/src/");
   strcat(language,".csv");
   strcat(path,language);
   //Test name
   strcpy(test,argv[3]);
-
-  //ntimes = atoi (argv[2]);
  
 
   fp = fopen(path,"a");

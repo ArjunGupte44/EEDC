@@ -1,10 +1,10 @@
 include ../../../.env
 
 compile:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse3 --std=c++11 nbody.gpp-8.c++ -o nbody.gpp-8.c++.o &&  /usr/bin/g++ nbody.gpp-8.c++.o -o nbody.gpp-8.gpp_run -fopenmp
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native -mfpmath=sse -msse3 --std=c++11 nbody.gpp-8.c++ -o nbody.gpp-8.c++.o &&  /usr/bin/g++ nbody.gpp-8.c++.o -o nbody.gpp-8.gpp_run -fopenmp
 
 compile_optimized:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse3 --std=c++11 optimized_nbody.gpp-8.c++ -o optimized_nbody.gpp-8.c++.o &&  /usr/bin/g++ optimized_nbody.gpp-8.c++.o -o optimized_nbody.gpp-8.gpp_run -fopenmp
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native -mfpmath=sse -msse3 --std=c++11 optimized_nbody.gpp-8.c++ -o optimized_nbody.gpp-8.c++.o &&  /usr/bin/g++ optimized_nbody.gpp-8.c++.o -o optimized_nbody.gpp-8.gpp_run -fopenmp
 
 measure:
 	sudo modprobe msr

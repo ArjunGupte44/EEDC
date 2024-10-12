@@ -1,10 +1,10 @@
 include ../../../.env
 
 compile:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++11 -mtune=native -mfpmath=sse -msse2 revcomp.gpp-4.c++ -o revcomp.gpp-4.c++.o &&  /usr/bin/g++ revcomp.gpp-4.c++.o -o revcomp.gpp-4.gpp_run -pthread 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++11 -mtune=native -mfpmath=sse -msse2 revcomp.gpp-4.c++ -o revcomp.gpp-4.c++.o &&  /usr/bin/g++ revcomp.gpp-4.c++.o -o revcomp.gpp-4.gpp_run -pthread 
 
 compile_optimized:
-	/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native  -std=c++11 -mtune=native -mfpmath=sse -msse2 optimized_revcomp.gpp-4.c++ -o optimized_revcomp.gpp-4.c++.o &&  /usr/bin/g++ optimized_revcomp.gpp-4.c++.o -o optimized_revcomp.gpp-4.gpp_run -pthread 
+	/usr/bin/g++ -c -pipe -fomit-frame-pointer -march=native  -std=c++11 -mtune=native -mfpmath=sse -msse2 optimized_revcomp.gpp-4.c++ -o optimized_revcomp.gpp-4.c++.o &&  /usr/bin/g++ optimized_revcomp.gpp-4.c++.o -o optimized_revcomp.gpp-4.gpp_run -pthread 
 
 measure:
 	sudo modprobe msr
