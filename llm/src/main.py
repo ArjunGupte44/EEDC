@@ -78,11 +78,8 @@ def master_script():
             
             # Success
             if regression_test_result == 1:
+                get_evaluator_feedback(filename, success)
                 success += 1
-                if success == 1:
-                    get_evaluator_feedback(filename, 0)
-                else:
-                    get_evaluator_feedback(filename, 1)
                 print("Got evaluator feedback")
                 # Copy compiling file
                 os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
