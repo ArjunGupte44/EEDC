@@ -105,10 +105,10 @@ prompt = """You are tasked with optimizing the following C++ code for energy eff
 """
 
 def llm_optimize(filename):
-    source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename}"
-
     if filename.split('.')[1] == "compiled":
-        filename = filename.split('.')[0] + "." + filename.split('.')[2:]
+        filename = filename.split('.')[0] + "." + ('.'.join(filename.split('.')[2:]))
+
+    source_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename}"
 
     with open(source_path, "r") as file:
         code_content = file.read()

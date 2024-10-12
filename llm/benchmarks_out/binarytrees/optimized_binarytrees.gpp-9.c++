@@ -1,104 +1,126 @@
 #include <iostream>
-#include <vector>
-#include <mutex>
-#include <cstdlib>
-#include <algorithm>
-#include <cstring>
-// Removed OpenMP for debugging output differences
+#include <stdlib.h>
+#include <stdio.h>
+#include <apr_pools.h>
+#include <omp.h>
 
-const size_t LINE_SIZE = 128;
+const size_t    LINE_SIZE = 64;
 
-struct Node {
-    Node* l = nullptr;
-    Node* r = nullptr;
-
-    int check() const {
-        return (l ? l->check() : 0) + (r ? r->check() : 0) + 1;
-    }
-};
-
-class NodePool {
+class Apr
+{
 public:
-    std::vector<Node*> pool;
-
-    Node* allocate() {
-        if (!pool.empty()) {
-            Node* n = pool.back();
-            pool.pop_back();
-            n->l = nullptr;
-            n->r = nullptr;
-            return n;
-        }
-        return new Node();
+    Apr() 
+    {
+        apr_initialize();
     }
 
-    void deallocate(Node* n) {
-        pool.push_back(n);
-    }
-
-    ~NodePool() {
-        for (Node* n : pool) {
-            delete n;
-        }
+    ~Apr() 
+    {
+        apr_terminate();
     }
 };
 
-Node* make(NodePool& pool, int depth) {
-    Node* root = pool.allocate();
-    if (depth > 0) {
-        root->l = make(pool, depth - 1);
-        root->r = make(pool, depth - 1);
+struct Node 
+{
+    Node *l, *r;
+    
+    int check() const 
+    {
+        if (l) {
+            return l->check() + 1 + r->check();
+        }
+        else return 1;
     }
+};
+
+class NodePool
+{
+public:
+    NodePool() 
+    {
+        apr_pool_create_unmanaged(&pool);
+    }
+
+    ~NodePool() 
+    {
+        apr_pool_destroy(pool);
+    }
+
+    Node* alloc()
+    {
+        return (Node *)apr_palloc(pool, sizeof(Node));
+    }
+
+    void clear() // Removed the threshold and apr_pool_num_bytes_alloc function
+    {
+        apr_pool_clear(pool);
+    }
+
+private:
+    apr_pool_t* pool;
+};
+
+Node *make(int d, NodePool &store)
+{
+    Node* root = store.alloc();
+
+    if(d > 0) {
+        root->l = make(d - 1, store);
+        root->r = make(d - 1, store);
+    } else {
+        root->l = root->r = nullptr;
+    }
+
     return root;
 }
 
-void deleteTree(NodePool& pool, Node* node) {
-    if (!node) return;
-    deleteTree(pool, node->l);
-    deleteTree(pool, node->r);
-    pool.deallocate(node);
-}
-
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) 
+{
+    Apr apr;
     int min_depth = 4;
-    int max_depth = std::max(min_depth + 2, (argc == 2 ? atoi(argv[1]) : 12));
+    int max_depth = std::max(min_depth + 2, (argc == 2 ? atoi(argv[1]) : 10));
     int stretch_depth = max_depth + 1;
 
-    NodePool pool;
+    // Allocate then deallocate a stretch depth tree
+    {
+        NodePool store;
+        Node *c = make(stretch_depth, store);
+        std::cout << "stretch tree of depth " << stretch_depth << "\t "
+                  << "check: " << c->check() << std::endl;
+    }
 
-    // Stretch tree
-    Node* stretch_tree = make(pool, stretch_depth);
-    std::cout << "stretch tree of depth " << stretch_depth << "\t check: " << stretch_tree->check() << std::endl;
-    deleteTree(pool, stretch_tree);
+    NodePool long_lived_store;
+    Node *long_lived_tree = make(max_depth, long_lived_store);
 
-    // Long-lived tree
-    Node* long_lived_tree = make(pool, max_depth);
+    // Buffer to store output of each thread
+    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth + 1) * sizeof(char));
 
-    std::vector<std::string> results;
-    // std::mutex results_mutex;  // Mutex for threading, not used here
-
-    for (int d = min_depth; d <= max_depth; d += 2) {
-        NodePool local_pool;  // Each depth level gets its own pool to avoid cross-level issues
+    #pragma omp parallel for 
+    for (int d = min_depth; d <= max_depth; d += 2) 
+    {
         int iterations = 1 << (max_depth - d + min_depth);
         int c = 0;
 
-        for (int i = 1; i <= iterations; ++i) {
-            Node* a = make(local_pool, d);
+        NodePool store;
+
+        for (int i = 1; i <= iterations; ++i) 
+        {
+            Node *a = make(d, store);
             c += a->check();
-            deleteTree(local_pool, a);
+            store.clear();
         }
 
-        char buffer[LINE_SIZE];
-        snprintf(buffer, LINE_SIZE, "%d\t trees of depth %d\t check: %d\n", iterations, d, c);
-        results.push_back(std::string(buffer));
+        sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
+           iterations, d, c);
     }
 
-    for (auto& result : results) {
-        std::cout << result;
-    }
+    // Print all results
+    for (int d = min_depth; d <= max_depth; d += 2) 
+        printf("%s", outputstr + (d * LINE_SIZE));
+    free(outputstr);
 
-    std::cout << "long lived tree of depth " << max_depth << "\t check: " << long_lived_tree->check() << "\n";
-    deleteTree(pool, long_lived_tree);
+    std::cout << "long lived tree of depth " << max_depth << "\t "
+              << "check: " << (long_lived_tree->check()) << "\n";
 
     return 0;
 }

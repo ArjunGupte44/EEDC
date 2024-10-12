@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <apr_pools.h>
-
+#include <omp.h>
 
 const size_t    LINE_SIZE = 64;
 
@@ -26,8 +26,9 @@ struct Node
     
     int check() const 
     {
-        if (l)
+        if (l) {
             return l->check() + 1 + r->check();
+        }
         else return 1;
     }
 };
@@ -50,7 +51,7 @@ public:
         return (Node *)apr_palloc(pool, sizeof(Node));
     }
 
-    void clear()
+    void clear() // Removed the threshold and apr_pool_num_bytes_alloc function
     {
         apr_pool_clear(pool);
     }
@@ -63,11 +64,11 @@ Node *make(int d, NodePool &store)
 {
     Node* root = store.alloc();
 
-    if(d>0){
-        root->l=make(d-1, store);
-        root->r=make(d-1, store);
-    }else{
-        root->l=root->r=0;
+    if(d > 0) {
+        root->l = make(d - 1, store);
+        root->r = make(d - 1, store);
+    } else {
+        root->l = root->r = nullptr;
     }
 
     return root;
@@ -77,11 +78,10 @@ int main(int argc, char *argv[])
 {
     Apr apr;
     int min_depth = 4;
-    int max_depth = std::max(min_depth+2,
-                             (argc == 2 ? atoi(argv[1]) : 10));
-    int stretch_depth = max_depth+1;
+    int max_depth = std::max(min_depth + 2, (argc == 2 ? atoi(argv[1]) : 10));
+    int stretch_depth = max_depth + 1;
 
-    // Alloc then dealloc stretchdepth tree
+    // Allocate then deallocate a stretch depth tree
     {
         NodePool store;
         Node *c = make(stretch_depth, store);
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
     NodePool long_lived_store;
     Node *long_lived_tree = make(max_depth, long_lived_store);
 
-    // buffer to store output of each thread
-    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth +1) * sizeof(char));
+    // Buffer to store output of each thread
+    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth + 1) * sizeof(char));
 
     #pragma omp parallel for 
     for (int d = min_depth; d <= max_depth; d += 2) 
@@ -101,7 +101,6 @@ int main(int argc, char *argv[])
         int iterations = 1 << (max_depth - d + min_depth);
         int c = 0;
 
-        // Create a memory pool for this thread to use.
         NodePool store;
 
         for (int i = 1; i <= iterations; ++i) 
@@ -111,14 +110,13 @@ int main(int argc, char *argv[])
             store.clear();
         }
 
-        // each thread write to separate location
         sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
            iterations, d, c);
     }
 
-    // print all results
+    // Print all results
     for (int d = min_depth; d <= max_depth; d += 2) 
-        printf("%s", outputstr + (d * LINE_SIZE) );
+        printf("%s", outputstr + (d * LINE_SIZE));
     free(outputstr);
 
     std::cout << "long lived tree of depth " << max_depth << "\t "
