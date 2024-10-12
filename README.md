@@ -14,8 +14,6 @@ Power Consumption Measurement | Section III.C | /RAPL | energy/src/measure_energ
 - [Setting up the pipeline](#setting-up-the-pipeline)
 - [Running the pipeline](#running-the-pipeline)
 - [Manual analysis and evaluation](#manual-analysis-and-evaluation)
-- [Workflow](#workflow)
-- [Data Availability](#data-availability)
 - [Reproduce Results](#reproduce-results)
 - [Included Scripts](#included-scripts)
 - [Code Dependencies](#code-dependencies)
