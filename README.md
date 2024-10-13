@@ -24,7 +24,7 @@ This artifact requires a machine with the following capabilities to support RAPL
 - Root Access: MSRs can only be accessed with root/superuser privileges.
 
 3. Software
-- msr-tools: Install for reading/writing MSRs:
+- msr-tools: Install for reading MSRs:
   ```bash
   sudo apt-get install msr-tools
 
