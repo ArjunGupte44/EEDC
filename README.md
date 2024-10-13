@@ -11,6 +11,13 @@ Software Benchmark | Section III.C | /benchmarks | energy/src/benchmark.py
 Power Consumption Measurement | Section III.C | /RAPL | energy/src/measure_energy.py
 Comparison of Results with GCC –O3 | Section IV.D | /test_results | 
 
+## Table of Contents
+- [Environment Requirement](#environment-requirement)
+- [Reproduce Results](#reproduce-results)
+- [Running the pipeline](#running-the-pipeline)
+- [Analysis and evaluation](#analysis-and-evaluation)
+- [Code Dependencies](#code-dependencies)
+
 ## Environment Requirement
 This artifact requires a machine with the following capabilities to support RAPL (Running Average Power Limit) and read MSR (Model-Specific Registers):
 
@@ -28,11 +35,6 @@ This artifact requires a machine with the following capabilities to support RAPL
   ```bash
   sudo apt-get install msr-tools
 
-## Table of Contents
-- [Reproduce Results](#reproduce-results)
-- [Running the pipeline](#running-the-pipeline)
-- [Analysis and evaluation](#analysis-and-evaluation)
-- [Code Dependencies](#code-dependencies)
 ## Reproduce Results
 To set up the pipeline for energy-efficient code optimization, follow these steps:
 1. **Clone the repository:**
