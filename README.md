@@ -11,6 +11,18 @@ Software Benchmark | Section III.C | /benchmarks | energy/src/benchmark.py
 Power Consumption Measurement | Section III.C | /RAPL | energy/src/measure_energy.py
 Comparison of Results with GCC –O3 | Section IV.D | /test_results | 
 
+## Environment Requirement
+This artifact requires a machine with the following capabilities to support RAPL (Running Average Power Limit) and read MSR (Model-Specific Registers):
+
+1. Hardware
+Intel Processor: Machine with Intel processors supporting RAPL (Sandy Bridge or newer).
+MSR Support: Machine must allow access to MSRs.
+
+2. Operating System
+Linux-based OS (e.g., Ubuntu 16.04+).
+Linux Kernel Version 3.13+ required for RAPL support.
+Root Access: MSRs can only be accessed with root/superuser privileges.
+
 ## Table of Contents
 - [Reproduce Results](#reproduce-results)
 - [Running the pipeline](#running-the-pipeline)
