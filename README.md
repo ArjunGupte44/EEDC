@@ -14,16 +14,16 @@ Comparison of Results with GCC –O3 | Section IV.D | /test_results |
 ## Environment Requirement
 This artifact requires a machine with the following capabilities to support RAPL (Running Average Power Limit) and read MSR (Model-Specific Registers):
 
-1. Hardware
+1. **Hardware**
 - Intel Processor: Machine with Intel processors supporting RAPL (Sandy Bridge or newer).
 - MSR Support: Machine must allow access to MSRs.
 
-2. Operating System
+2. **Operating System**
 - Linux-based OS (e.g., Ubuntu 16.04+).
 - Linux Kernel Version 3.13+ required for RAPL support.
 - Root Access: MSRs can only be accessed with root/superuser privileges.
 
-3. Software
+3. **Software**
 - msr-tools: Install for reading MSRs:
   ```bash
   sudo apt-get install msr-tools
