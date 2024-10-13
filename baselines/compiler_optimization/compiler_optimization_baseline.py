@@ -1,11 +1,14 @@
 import os
 import subprocess
+from dotenv import load_dotenv
+load_dotenv()
+USER_PREFIX = os.getenv('USER_PREFIX')
 
-benchmark_dirs = ["pidigits", "k-nucleotide", "binary-trees", "fannkuch-redux", "n-body", "regex-redux"]#os.listdir("/home/arjun/VIP_PTM/EEDC/benchmarks") #FIX THIS: for me, just move the EEDC and Energy Languages benchmark folders out of VIP_PTM
+benchmark_dirs = ["pidigits", "k-nucleotide", "binary-trees", "fannkuch-redux", "n-body", "regex-redux"]
 full_report = {}
 
 #Clean energy/data/C++.csv by opening and closing it
-energy_csv_file = open("/home/arjun/VIP_PTM/EEDC/energy/data/C++.csv", 'w')
+energy_csv_file = open(f"{USER_PREFIX}/energy/data/C++.csv", 'w')
 energy_csv_file.close()
 
 #Iterate through all the folders in benchmarks folder

@@ -8,13 +8,13 @@ compile_optimized:
 
 measure:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./pidigits.gpp-4.gpp_run 10000" c++ pidigits
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./pidigits.gpp-4.gpp_run 10000" c++ pidigits
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 measure_optimized:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./optimized_pidigits.gpp-4.gpp_run 10000" c++ pidigits
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./optimized_pidigits.gpp-4.gpp_run 10000" c++ pidigits
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 	
 run:
 	./pidigits.gpp-4.gpp_run 10000

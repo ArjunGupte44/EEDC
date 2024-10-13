@@ -31,11 +31,10 @@ total_compilation_errors, compilation_errors_fixed = 0, 0
 def master_script(filename):
 
     global total_compilation_errors, compilation_errors_fixed
-    # for filename in os.listdir(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code"):
 
     # Keep a copy of a compiling file for re-optimization
-    shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
-    print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+    shutil.copyfile(f"{USER_PREFIX}/llm/llm_input_files/input_code/{filename}", f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+    print(f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
     
     print(f"Optimizing {filename}, longest step")
     if llm_optimize(filename) != 0:
@@ -88,9 +87,9 @@ def master_script(filename):
             success += 1
             print("Got evaluator feedback")
             # Copy compiling file
-            print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
-            os.makedirs(os.path.dirname(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
-            shutil.copyfile(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+            print(f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
+            os.makedirs(os.path.dirname(f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}"), exist_ok=True)
+            shutil.copyfile(f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}", f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/{filename.split('.')[0]}.compiled.{'.'.join(filename.split('.')[1:])}")
             print("Regression test successful")
             
             # Hard code to run 5 times
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     print(f"Total compilation errors: {total_compilation_errors}, fixed: {compilation_errors_fixed}")
     print("EEDC Optimization Complete, writing results to file.....")
 
-    with open(f"{USER_PREFIX}/EEDC/energy/c++/benchmark_data.pkl", "rb") as file:
+    with open(f"{USER_PREFIX}/energy/c++/benchmark_data.pkl", "rb") as file:
         contents = pickle.load(file)
     
     dict_str = json.dumps(contents, indent=4)
@@ -125,7 +124,7 @@ if __name__ == "__main__":
         file.write(str(dict_str))
 
     # Delete evaluator feedback
-    file_path = f"{USER_PREFIX}/EEDC/energy/src/evaluator_feedback.txt"
+    file_path = f"{USER_PREFIX}/energy/src/evaluator_feedback.txt"
     try:
         # Check if file exists
         if os.path.isfile(file_path):

@@ -8,12 +8,12 @@ compile_optimized:
 
 measure:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./fasta.gpp-5.gpp_run 25000000" c++ fasta
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./fasta.gpp-5.gpp_run 25000000" c++ fasta
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 	
 measure_optimized:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./optimized_fasta.gpp-5.gpp_run 25000000" C++ fasta
+	sudo ${USER_PREFIX}/RAPL/main "./optimized_fasta.gpp-5.gpp_run 25000000" C++ fasta
 
 run:
 	./fasta.gpp-5.gpp_run 25000000

@@ -8,13 +8,13 @@ compile_optimized:
 
 measure:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./knucleotide.gpp-3.gpp_run 0 < knucleotide-input25000000.txt" c++ k-nucleotide
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./knucleotide.gpp-3.gpp_run 0 < knucleotide-input25000000.txt" c++ k-nucleotide
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 measure_optimized:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./optimized_knucleotide.gpp-3.gpp_run 0 < knucleotide-input25000000.txt" c++ k-nucleotide
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./optimized_knucleotide.gpp-3.gpp_run 0 < knucleotide-input25000000.txt" c++ k-nucleotide
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 run:
 	./knucleotide.gpp-3.gpp_run 0 < knucleotide-input25000000.txt

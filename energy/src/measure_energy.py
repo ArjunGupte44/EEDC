@@ -101,10 +101,10 @@ def get_evaluator_feedback(filename, optim_iter):
     name = filename.split(".")[0]
     # print(f"name: {name}")
 
-    original_code_path = f"{USER_PREFIX}/EEDC/llm/llm_input_files/input_code/{filename}"
+    original_code_path = f"{USER_PREFIX}/llm/llm_input_files/input_code/{filename}"
     # print(f"original_code_path: {original_code_path}")
 
-    optimized_code_path = f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
+    optimized_code_path = f"{USER_PREFIX}/llm/benchmarks_out/{filename.split('.')[0]}/optimized_{filename}"
     # print(f"optimized_code_path: {optimized_code_path}")
 
     pkl_path = os.path.join(os.path.dirname(__file__), f"../../energy/{language}/benchmark_data.pkl")

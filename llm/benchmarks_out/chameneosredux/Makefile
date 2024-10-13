@@ -8,13 +8,13 @@ compile_optimized:
 
 measure:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./chameneosredux.gpp-5.gpp_run 6000000" c++ chameneosredux
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./chameneosredux.gpp-5.gpp_run 6000000" c++ chameneosredux
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 measure_optimized:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "./optimized_chameneosredux.gpp-5.gpp_run 6000000" c++ chameneosredux
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "./optimized_chameneosredux.gpp-5.gpp_run 6000000" c++ chameneosredux
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 	
 run:
 	./chameneosredux.gpp-5.gpp_run 6000000

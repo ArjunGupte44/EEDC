@@ -19,15 +19,15 @@ class Benchmark():
     def run(self, optim_iter):
         # First clear the contents of the energy data log file
         print(f"Benchmark.run: clearing content in {self.benchmark_language}.csv")
-        log_file_path = f"{USER_PREFIX}/EEDC/energy/src/{self.benchmark_language}.csv"
+        log_file_path = f"{USER_PREFIX}/energy/src/{self.benchmark_language}.csv"
         if os.path.exists(log_file_path):
             file = open(log_file_path, "w+")
             file.close()
 
         #run make measure using make file
         #change current directory to benchmarks/folder to run make file
-        os.chdir(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{self.benchmark_name}")
-        print(f"{USER_PREFIX}/EEDC/llm/benchmarks_out/{self.benchmark_name}")
+        os.chdir(f"{USER_PREFIX}/llm/benchmarks_out/{self.benchmark_name}")
+        print(f"{USER_PREFIX}/llm/benchmarks_out/{self.benchmark_name}")
         current_dir = os.getcwd()
         print(f"Current directory: {current_dir}")
 
@@ -57,7 +57,7 @@ class Benchmark():
 
 
     def process_results(self, results_file, optim_iter, source_code_path) -> float:
-        energy_data_file = open(f"{USER_PREFIX}/EEDC/energy/src/{self.benchmark_language}.csv", "r")
+        energy_data_file = open(f"{USER_PREFIX}/energy/src/{self.benchmark_language}.csv", "r")
         benchmark_data = []
         for line in energy_data_file:
             parts = line.split(';')
@@ -84,7 +84,7 @@ class Benchmark():
         self.benchmark_data[optim_iter] = (source_code, round(avg_energy, 3), round(avg_runtime, 3))
 
         #Update PKL file with latest version of benchmark data dict
-        with open(f"{USER_PREFIX}/EEDC/energy/{self.benchmark_language}/benchmark_data.pkl", "wb") as benchmark_data_pkl_file:
+        with open(f"{USER_PREFIX}/energy/{self.benchmark_language}/benchmark_data.pkl", "wb") as benchmark_data_pkl_file:
             pickle.dump(self.benchmark_data, benchmark_data_pkl_file)
 
         #Close all files

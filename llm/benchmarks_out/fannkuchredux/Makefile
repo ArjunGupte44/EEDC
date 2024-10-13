@@ -8,13 +8,13 @@ compile_optimized:
 
 measure:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "${USER_PREFIX}/EEDC/llm/benchmarks_out/fannkuchredux/fannkuchredux.gpp-5.gpp_run 12" c++ fannkuch-redux
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "${USER_PREFIX}/llm/benchmarks_out/fannkuchredux/fannkuchredux.gpp-5.gpp_run 12" c++ fannkuch-redux
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 measure_optimized:
 	sudo modprobe msr
-	sudo ${USER_PREFIX}/EEDC/RAPL/main "${USER_PREFIX}/EEDC/llm/benchmarks_out/fannkuchredux/optimized_fannkuchredux.gpp-5.gpp_run 12" c++ fannkuch-redux
-	sudo chmod -R 777 ${USER_PREFIX}/EEDC/energy/src/c++.csv
+	sudo ${USER_PREFIX}/RAPL/main "${USER_PREFIX}/llm/benchmarks_out/fannkuchredux/optimized_fannkuchredux.gpp-5.gpp_run 12" c++ fannkuch-redux
+	sudo chmod -R 777 ${USER_PREFIX}/energy/src/c++.csv
 
 run:
 	./fannkuchredux.gpp-5.gpp_run 12
