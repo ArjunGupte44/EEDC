@@ -23,6 +23,11 @@ This artifact requires a machine with the following capabilities to support RAPL
 - Linux Kernel Version 3.13+ required for RAPL support.
 - Root Access: MSRs can only be accessed with root/superuser privileges.
 
+3. Software
+- msr-tools: Install for reading/writing MSRs:
+  ```bash
+  sudo apt-get install msr-tools
+
 ## Table of Contents
 - [Reproduce Results](#reproduce-results)
 - [Running the pipeline](#running-the-pipeline)
