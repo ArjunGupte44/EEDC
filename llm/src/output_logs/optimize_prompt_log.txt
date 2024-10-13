@@ -9,8 +9,8 @@ You are tasked with optimizing the following C++ code for energy efficiency, spe
                 
                 Provide a detailed step-by-step explanation of your analysis and the reasoning behind each optimization strategy. After evaluating the pros and cons of each approach, choose the most effective strategy and implement the necessary changes directly into the code. Make sure the optimized code and the original code provide the same output in the same format for any given input. This is critical to the optimization.
                 
-                Here is an example of desirable optimization:
-                Example of optimization: 
+                Here is an example of desirable response:
+
                 Example of cpp code to be optimized:
                 ```
                 #include <iostream>
@@ -44,8 +44,21 @@ You are tasked with optimizing the following C++ code for energy efficiency, spe
                     return 0;
                 }
                 ```
+                Example of Analysis:
 
-                Here is the actual code to be optimized: 
+                Reduction of Nested Loops: The original code uses a nested loop with O(n²) complexity, which is highly inefficient for large inputs. We can significantly reduce CPU cycles by eliminating the second loop and using a more efficient approach.
+                Efficient Data Structure Selection: To eliminate nested loops, we can use a hash-based data structure like unordered_set, which provides O(1) average-time complexity for both insertions and lookups. This ensures we only traverse the list once, lowering time complexity to O(n).
+                Dynamic Programming or Memoization: Since we are only identifying duplicates without overlapping subproblems, dynamic programming or memoization is not needed here. Using a hash set avoids redundant calculations, as each element is processed exactly once.
+                Specialized Algorithms: Given that the problem is about finding duplicates, no specialized algorithm is required beyond leveraging the efficient properties of a hash set for tracking elements.
+                I/O Optimization: The I/O operations are minimal and don't present significant overhead. However, maintaining simplicity in how duplicates are printed ensures no unnecessary additional operations are introduced.
+                Code Simplicity and Readability: Using an unordered_set makes the code both efficient and readable. The logic remains easy to follow, while offering an energy-efficient solution by reducing computational and memory overhead.
+
+                After considering various strategies, we opted for using unordered_set because it effectively reduces the time complexity from O(n²) to O(n) by eliminating nested loops. The set also ensures minimal memory usage and fast lookups, making it an ideal fit for this problem.
+                While dynamic programming or memoization wasn't necessary, the simplicity and clarity of using a hash-based approach meant the code remained both energy-efficient and easy to maintain.
+                Other alternatives, like sorting-based algorithms, were discarded since they either increased complexity or were unnecessary for the problem at hand.
+                This approach provided the best balance between energy efficiency, performance, and code simplicity.
+
+                Here is the actual optimized code: 
                 ```
                 #include <iostream>
                 #include <vector>
@@ -80,131 +93,187 @@ You are tasked with optimizing the following C++ code for energy efficiency, spe
                     return 0;
                 }
                 ```
- #include <iostream>
-#include <stdlib.h>
+ /* The Computer Language Benchmarks Game
+   http://benchmarksgame.alioth.debian.org/
+
+   contributed by Mark C. Lewis
+   modified slightly by Chad Whipkey
+   converted from java to c++,added sse support, by Branimir Maksimovic
+   converted from c++ to c, by Alexey Medvedchikov 
+   converted from c to c++11, by Walter Landry
+   modified by Dmitri Naumov
+*/
+
+#include <algorithm>
 #include <stdio.h>
-#include <apr_pools.h>
+#include <cmath>
+#include <stdlib.h>
+#include <immintrin.h>
+#include <array>
 
+constexpr double PI(3.141592653589793);
+constexpr double SOLAR_MASS ( 4 * PI * PI );
+constexpr double DAYS_PER_YEAR(365.24);
 
-const size_t    LINE_SIZE = 64;
+struct body {
+  double x[3], fill, v[3], mass;
+  constexpr body(double x0, double x1, double x2, double v0, double v1, double v2,  double Mass):
+    x{x0,x1,x2}, fill(0), v{v0,v1,v2}, mass(Mass) {}
+};
 
-class Apr
+class N_Body_System
 {
+  static std::array<body,5> bodies;
+
+  void offset_momentum()
+  {
+    unsigned int k;
+    for(auto &body: bodies)
+      for(k = 0; k < 3; ++k)
+        bodies[0].v[k] -= body.v[k] * body.mass / SOLAR_MASS;
+  }
+
 public:
-    Apr() 
-    {
-        apr_initialize();
-    }
+  N_Body_System()
+  {
+    offset_momentum();
+  }
+  void advance(double dt)
+  {
+    constexpr unsigned int N = ((bodies.size() - 1) * bodies.size()) / 2;
 
-    ~Apr() 
-    {
-        apr_terminate();
-    }
+    static double r[N][4];
+    static double mag[N];
+
+    unsigned int i, m;
+    __m128d dx[3], dsquared, distance, dmag;
+
+    i=0;
+    for(auto bi(bodies.begin()); bi!=bodies.end(); ++bi)
+      {
+        auto bj(bi);
+        for(++bj; bj!=bodies.end(); ++bj, ++i)
+          for (m=0; m<3; ++m)
+            r[i][m] = bi->x[m] - bj->x[m];
+      }
+
+    for (i=0; i<N; i+=2)
+      {
+        for (m=0; m<3; ++m)
+          {
+            dx[m] = _mm_loadl_pd(dx[m], &r[i][m]);
+            dx[m] = _mm_loadh_pd(dx[m], &r[i+1][m]);
+          }
+
+        dsquared = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+        distance = _mm_cvtps_pd(_mm_rsqrt_ps(_mm_cvtpd_ps(dsquared)));
+
+        for (m=0; m<2; ++m)
+          distance = distance * _mm_set1_pd(1.5)
+            - ((_mm_set1_pd(0.5) * dsquared) * distance)
+            * (distance * distance);
+
+        dmag = _mm_set1_pd(dt) / (dsquared) * distance;
+        _mm_store_pd(&mag[i], dmag);
+      }
+
+    i=0;
+    for(auto bi(bodies.begin()); bi!=bodies.end(); ++bi)
+      {
+        auto bj(bi);
+        for(++bj; bj!=bodies.end(); ++bj, ++i)
+          for(m=0; m<3; ++m)
+            {
+              const double x = r[i][m] * mag[i];
+              bi->v[m] -= x * bj->mass;
+              bj->v[m] += x * bi->mass;
+            }
+      }
+
+    for(auto &body: bodies)
+      for(m=0; m<3; ++m)
+        body.x[m] += dt * body.v[m];
+  }
+
+  double energy()
+  {
+    double e(0.0);
+    for(auto bi(bodies.cbegin()); bi!=bodies.cend(); ++bi)
+      {
+        e += bi->mass * ( bi->v[0] * bi->v[0]
+                          + bi->v[1] * bi->v[1]
+                          + bi->v[2] * bi->v[2] ) / 2.;
+
+        auto bj(bi);
+        for(++bj; bj!=bodies.end(); ++bj)
+          {
+            double distance = 0;
+            for(auto k=0; k<3; ++k)
+            {
+              const double dx = bi->x[k] - bj->x[k];
+              distance += dx * dx;
+            }
+
+            e -= (bi->mass * bj->mass) / std::sqrt(distance);
+          }
+      }
+    return e;
+  }
 };
 
-struct Node 
+
+std::array<body,5> N_Body_System::bodies{{
+    /* sun */
+    body(0., 0., 0. ,
+         0., 0., 0. ,
+         SOLAR_MASS),
+    /* jupiter */
+    body(4.84143144246472090e+00,
+         -1.16032004402742839e+00,
+         -1.03622044471123109e-01 ,
+         1.66007664274403694e-03 * DAYS_PER_YEAR,
+         7.69901118419740425e-03 * DAYS_PER_YEAR,
+         -6.90460016972063023e-05 * DAYS_PER_YEAR ,
+         9.54791938424326609e-04 * SOLAR_MASS
+         ),
+    /* saturn */
+    body(8.34336671824457987e+00,
+         4.12479856412430479e+00,
+         -4.03523417114321381e-01 ,
+         -2.76742510726862411e-03 * DAYS_PER_YEAR,
+         4.99852801234917238e-03 * DAYS_PER_YEAR,
+         2.30417297573763929e-05 * DAYS_PER_YEAR ,
+         2.85885980666130812e-04 * SOLAR_MASS
+         ),
+    /* uranus */
+    body(1.28943695621391310e+01,
+         -1.51111514016986312e+01,
+         -2.23307578892655734e-01 ,
+         2.96460137564761618e-03 * DAYS_PER_YEAR,
+         2.37847173959480950e-03 * DAYS_PER_YEAR,
+         -2.96589568540237556e-05 * DAYS_PER_YEAR ,
+         4.36624404335156298e-05 * SOLAR_MASS
+         ),
+    /* neptune */
+    body(1.53796971148509165e+01,
+         -2.59193146099879641e+01,
+         1.79258772950371181e-01 ,
+         2.68067772490389322e-03 * DAYS_PER_YEAR,
+         1.62824170038242295e-03 * DAYS_PER_YEAR,
+         -9.51592254519715870e-05 * DAYS_PER_YEAR ,
+         5.15138902046611451e-05 * SOLAR_MASS
+         )
+  }};
+
+int main(int , char** argv)
 {
-    Node *l, *r;
-    
-    int check() const 
-    {
-        if (l)
-            return l->check() + 1 + r->check();
-        else return 1;
-    }
-};
+  int i, n = atoi(argv[1]);
+  N_Body_System system;
 
-class NodePool
-{
-public:
-    NodePool() 
-    {
-        apr_pool_create_unmanaged(&pool);
-    }
+  printf("%.9f\n", system.energy());
+  for (i = 0; i < n; ++i)
+    system.advance(0.01);
+  printf("%.9f\n", system.energy());
 
-    ~NodePool() 
-    {
-        apr_pool_destroy(pool);
-    }
-
-    Node* alloc()
-    {
-        return (Node *)apr_palloc(pool, sizeof(Node));
-    }
-
-    void clear()
-    {
-        apr_pool_clear(pool);
-    }
-
-private:
-    apr_pool_t* pool;
-};
-
-Node *make(int d, NodePool &store)
-{
-    Node* root = store.alloc();
-
-    if(d>0){
-        root->l=make(d-1, store);
-        root->r=make(d-1, store);
-    }else{
-        root->l=root->r=0;
-    }
-
-    return root;
-}
-
-int main(int argc, char *argv[]) 
-{
-    Apr apr;
-    int min_depth = 4;
-    int max_depth = std::max(min_depth+2,
-                             (argc == 2 ? atoi(argv[1]) : 10));
-    int stretch_depth = max_depth+1;
-
-    // Alloc then dealloc stretchdepth tree
-    {
-        NodePool store;
-        Node *c = make(stretch_depth, store);
-        std::cout << "stretch tree of depth " << stretch_depth << "\t "
-                  << "check: " << c->check() << std::endl;
-    }
-
-    NodePool long_lived_store;
-    Node *long_lived_tree = make(max_depth, long_lived_store);
-
-    // buffer to store output of each thread
-    char *outputstr = (char*)malloc(LINE_SIZE * (max_depth +1) * sizeof(char));
-
-    #pragma omp parallel for 
-    for (int d = min_depth; d <= max_depth; d += 2) 
-    {
-        int iterations = 1 << (max_depth - d + min_depth);
-        int c = 0;
-
-        // Create a memory pool for this thread to use.
-        NodePool store;
-
-        for (int i = 1; i <= iterations; ++i) 
-        {
-            Node *a = make(d, store);
-            c += a->check();
-            store.clear();
-        }
-
-        // each thread write to separate location
-        sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n",
-           iterations, d, c);
-    }
-
-    // print all results
-    for (int d = min_depth; d <= max_depth; d += 2) 
-        printf("%s", outputstr + (d * LINE_SIZE) );
-    free(outputstr);
-
-    std::cout << "long lived tree of depth " << max_depth << "\t "
-              << "check: " << (long_lived_tree->check()) << "\n";
-
-    return 0;
+  return 0;
 } 

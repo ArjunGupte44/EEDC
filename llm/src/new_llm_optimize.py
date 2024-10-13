@@ -179,13 +179,23 @@ def handle_compilation_error(filename):
 
     with open(f"{USER_PREFIX}/EEDC/llm/src/output_logs/regression_test_log.txt", "r") as file:
         error_message = file.read()
-                      
+    
+
         class ErrorReasoning(BaseModel):
             analysis: str
             final_code: str
         
         compilation_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code failed to compile with the following error message: {error_message}. Analyze the error message and explicitly identify the issue in the code that caused the compilation error. Then, consider if there's a need to use a different optimization strategy to compile successfully or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it compiles successfully. Ensure that the optimized code is both efficient and error-free and return it. """   
         
+
+        #if regression test too large, usally is because of syntax error
+        # Get the size of the file in bytes
+        file_size_bytes = os.path.getsize(f"{USER_PREFIX}/EEDC/llm/src/output_logs/regression_test_log.txt")
+        file_size_kb = file_size_bytes / 1024
+        if file_size_kb > 100:
+            compilation_error_prompt = f"""You were tasked with the task outlined in the following prompt: {prompt}. You returned the following optimized code: {optimized_code}. However, the code has syntax error, explicitly identify the issue in the code that caused the syntax error. Then, consider if there's a need to use a different optimization strategy to compile successfully or if there are code changes which can fix this implementation strategy. Finally, update the code accordingly and ensure it compiles successfully. Ensure that the optimized code is both efficient and error-free and return it. """   
+        
+
         print("handle_compilation_error: promting for re-optimization")
         client = OpenAI(api_key=openai_key)
         completion = client.beta.chat.completions.parse(
